@@ -1,0 +1,172 @@
+import Foundation
+import StoreKit
+import UIKit
+
+@MainActor
+final class OnboardingViewModel: ObservableObject {
+    @Published var currentStep = 0
+    @Published var name = ""
+    @Published var partnerName = ""
+    @Published var couplePhoto: UIImage?
+    @Published var weddingDate = Date().adding(months: 12)
+    @Published var doesntKnowDate = false
+    @Published var weddingTown = ""
+    @Published var weddingLatitude: Double?
+    @Published var weddingLongitude: Double?
+    @Published var isTentedWedding = false
+    @Published var feelsPrepered = false
+    @Published var isLoading = false
+    @Published var sunsetTime: String?
+    @Published var daysUntilWedding: Int = 0
+
+    @Published var showError = false
+    @Published var errorMessage = ""
+
+    private let authService = AuthService.shared
+    private let notificationService = NotificationService.shared
+    private let subscriptionService = SubscriptionService.shared
+
+    private static let couplePhotoKey = "couplePhotoPath"
+
+    let totalSteps = 13
+
+    let loadingMessages = [
+        "Creating custom countdown...",
+        "Looking up the sunset on your wedding day...",
+        "Creating tip calendar...",
+        "Organizing wedding checklist..."
+    ]
+
+    var canContinue: Bool {
+        switch currentStep {
+        case 1: return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case 2: return !partnerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case 5: return !weddingTown.isEmpty && weddingLatitude != nil && weddingLongitude != nil
+        default: return true
+        }
+    }
+
+    func nextStep() {
+        guard currentStep < totalSteps - 1 else { return }
+        HapticManager.shared.buttonTap()
+        currentStep += 1
+    }
+
+    func previousStep() {
+        guard currentStep > 0 else { return }
+        currentStep -= 1
+    }
+
+    func selectTentedOption(_ isTented: Bool) {
+        isTentedWedding = isTented
+        nextStep()
+    }
+
+    func selectPreparedness(_ prepared: Bool) {
+        feelsPrepered = prepared
+    }
+
+    func saveCouplePhoto() {
+        guard let photo = couplePhoto else { return }
+
+        // Save to documents directory
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let photoPath = documentsPath.appendingPathComponent("couple_photo.jpg")
+
+        if let data = photo.jpegData(compressionQuality: 0.8) {
+            try? data.write(to: photoPath)
+            UserDefaults.standard.set(photoPath.path, forKey: Self.couplePhotoKey)
+        }
+    }
+
+    static func loadCouplePhoto() -> UIImage? {
+        guard let path = UserDefaults.standard.string(forKey: couplePhotoKey) else { return nil }
+        return UIImage(contentsOfFile: path)
+    }
+
+    func requestNotificationPermission() async {
+        _ = await notificationService.requestAuthorization()
+        nextStep()
+    }
+
+    func requestAppRating() {
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            SKStoreReviewController.requestReview(in: scene)
+        }
+        nextStep()
+    }
+
+    func startLoadingProcess() async {
+        isLoading = true
+
+        // Calculate sunset time
+        if let lat = weddingLatitude, let lon = weddingLongitude {
+            sunsetTime = SunsetService.shared.formattedSunsetTime(
+                for: weddingDate,
+                latitude: lat,
+                longitude: lon
+            )
+        }
+
+        // Calculate days until wedding
+        daysUntilWedding = Date().daysUntil(weddingDate)
+
+        // Minimum 6 seconds loading time for effect
+        try? await Task.sleep(nanoseconds: 6_000_000_000)
+
+        isLoading = false
+        nextStep()
+    }
+
+    func completeOnboarding() async {
+        do {
+            // Create local user if not authenticated
+            if !authService.isAuthenticated {
+                await authService.createLocalUser()
+            }
+
+            // Update user profile
+            guard var user = authService.currentUser else { return }
+
+            user = User(
+                id: user.id,
+                email: user.email,
+                name: name,
+                partnerName: partnerName,
+                weddingDate: weddingDate,
+                weddingTown: weddingTown,
+                weddingLatitude: weddingLatitude,
+                weddingLongitude: weddingLongitude,
+                isTentedWedding: isTentedWedding,
+                timezone: TimeZone.current.identifier,
+                lastViewedDay: user.lastViewedDay,
+                currentStreak: user.currentStreak,
+                longestStreak: user.longestStreak,
+                lastStreakDate: user.lastStreakDate,
+                tipsViewedCount: user.tipsViewedCount,
+                onboardingComplete: true,
+                isSubscribed: user.isSubscribed,
+                createdAt: user.createdAt ?? Date()
+            )
+
+            try await authService.updateUser(user)
+
+            // Schedule daily notifications if permission granted
+            if notificationService.isAuthorized {
+                notificationService.scheduleDailyNotification(tipTitle: "Check out your personalized tip!")
+                notificationService.scheduleStreakReminder()
+            }
+
+            // Identify user in subscription service
+            subscriptionService.identifyUser(userId: user.id.uuidString)
+
+            // Show onboarding complete paywall and wait for it to complete
+            await subscriptionService.showOnboardingPaywall()
+
+            HapticManager.shared.success()
+        } catch {
+            showError = true
+            errorMessage = error.localizedDescription
+        }
+    }
+}

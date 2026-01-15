@@ -1,0 +1,126 @@
+{
+  "identifier" : "DailyIDo",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21888837",
+      "localizations" : [
+
+      ],
+      "name" : "Daily I Do Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "3.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "dailyido.weekly.pro.399",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlock all daily tips and features",
+              "displayName" : "Weekly Pro",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "dailyido.weekly.pro.399",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Weekly Pro",
+          "subscriptionGroupID" : "21888837",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "dailyido.yearly.pro.3999",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlock all daily tips and features - Best Value!",
+              "displayName" : "Yearly Pro",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "dailyido.yearly.pro.3999",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly Pro",
+          "subscriptionGroupID" : "21888837",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
