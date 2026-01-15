@@ -12,6 +12,44 @@ class InstagramSharingService {
         return UIApplication.shared.canOpenURL(url)
     }
 
+    /// Check if Facebook is installed
+    var canShareToFacebook: Bool {
+        guard let url = URL(string: "facebook-stories://share") else { return false }
+        return UIApplication.shared.canOpenURL(url)
+    }
+
+    /// Share an image to Facebook Stories
+    func shareToFacebookStories(image: UIImage, completion: ((Bool) -> Void)? = nil) {
+        guard canShareToFacebook else {
+            completion?(false)
+            return
+        }
+
+        guard let imageData = image.pngData() else {
+            completion?(false)
+            return
+        }
+
+        let pasteboardItems: [String: Any] = [
+            "com.facebook.sharedSticker.backgroundImage": imageData
+        ]
+
+        let pasteboardOptions: [UIPasteboard.OptionsKey: Any] = [
+            .expirationDate: Date().addingTimeInterval(60 * 5)
+        ]
+
+        UIPasteboard.general.setItems([pasteboardItems], options: pasteboardOptions)
+
+        guard let url = URL(string: "facebook-stories://share?source_application=com.dailyido.app") else {
+            completion?(false)
+            return
+        }
+
+        UIApplication.shared.open(url, options: [:]) { success in
+            completion?(success)
+        }
+    }
+
     /// Share an image to Instagram Stories
     func shareToInstagramStories(image: UIImage, completion: ((Bool) -> Void)? = nil) {
         guard canShareToInstagram else {

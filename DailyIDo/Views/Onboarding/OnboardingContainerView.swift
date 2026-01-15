@@ -11,10 +11,10 @@ struct OnboardingContainerView: View {
 
             VStack(spacing: 0) {
                 // Header with back button and progress
-                if viewModel.currentStep < 11 {
+                if viewModel.currentStep > 0 && viewModel.currentStep < 12 {
                     HStack {
                         // Back button (hidden on first screen)
-                        if viewModel.currentStep > 0 {
+                        if viewModel.currentStep > 1 {
                             Button(action: {
                                 HapticManager.shared.buttonTap()
                                 viewModel.previousStep()
@@ -31,7 +31,7 @@ struct OnboardingContainerView: View {
 
                         Spacer()
 
-                        ProgressBar(progress: Double(viewModel.currentStep + 1) / Double(viewModel.totalSteps - 2))
+                        ProgressBar(progress: Double(viewModel.currentStep) / Double(viewModel.totalSteps - 3))
                             .frame(maxWidth: 200)
 
                         Spacer()
@@ -46,44 +46,47 @@ struct OnboardingContainerView: View {
 
                 // Content
                 TabView(selection: $viewModel.currentStep) {
-                    WelcomeView(viewModel: viewModel)
+                    IntroView(viewModel: viewModel)
                         .tag(0)
 
-                    NameInputView(viewModel: viewModel)
+                    WelcomeView(viewModel: viewModel)
                         .tag(1)
 
-                    PartnerNameInputView(viewModel: viewModel)
+                    NameInputView(viewModel: viewModel)
                         .tag(2)
 
-                    CouplePhotoUploadView(viewModel: viewModel)
+                    PartnerNameInputView(viewModel: viewModel)
                         .tag(3)
 
-                    DatePickerView(viewModel: viewModel)
+                    CouplePhotoUploadView(viewModel: viewModel)
                         .tag(4)
 
-                    LocationInputView(viewModel: viewModel)
+                    DatePickerView(viewModel: viewModel)
                         .tag(5)
 
-                    TentedQuestionView(viewModel: viewModel)
+                    LocationInputView(viewModel: viewModel)
                         .tag(6)
 
-                    PhilosophyView(viewModel: viewModel)
+                    TentedQuestionView(viewModel: viewModel)
                         .tag(7)
 
-                    NotificationPermissionView(viewModel: viewModel)
+                    PhilosophyView(viewModel: viewModel)
                         .tag(8)
 
-                    PreparednessView(viewModel: viewModel)
+                    NotificationPermissionView(viewModel: viewModel)
                         .tag(9)
 
-                    RatingRequestView(viewModel: viewModel)
+                    PreparednessView(viewModel: viewModel)
                         .tag(10)
 
-                    LoadingView(viewModel: viewModel)
+                    RatingRequestView(viewModel: viewModel)
                         .tag(11)
 
-                    PlanRevealView(viewModel: viewModel, isOnboardingComplete: $isOnboardingComplete)
+                    LoadingView(viewModel: viewModel)
                         .tag(12)
+
+                    PlanRevealView(viewModel: viewModel, isOnboardingComplete: $isOnboardingComplete)
+                        .tag(13)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)

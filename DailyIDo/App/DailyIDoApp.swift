@@ -62,24 +62,36 @@ struct MainTabView: View {
     @StateObject private var streakService = StreakService.shared
     @State private var showRemotePopup = false
     @State private var currentPopup: RemotePopup?
+    @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
 
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
                 // Content
                 Group {
-                    if selectedTab == 0 {
+                    switch selectedTab {
+                    case 0:
                         CalendarView()
-                    } else {
+                    case 1:
                         ChecklistView()
+                    case 2:
+                        SettingsView()
+                    default:
+                        CalendarView()
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 // Custom Tab Bar
-                CustomTabBar(selectedTab: $selectedTab)
+                CustomTabBar(selectedTab: $selectedTab, couplePhoto: couplePhoto)
             }
             .ignoresSafeArea(.keyboard)
+            .onChange(of: selectedTab) { newTab in
+                // Refresh photo when leaving settings tab
+                if newTab != 2 {
+                    couplePhoto = OnboardingViewModel.loadCouplePhoto()
+                }
+            }
 
             // Streak celebration overlay
             if let milestone = streakService.showingMilestone {
@@ -151,6 +163,10 @@ struct MainTabView: View {
 // Custom Tab Bar matching Figma design
 struct CustomTabBar: View {
     @Binding var selectedTab: Int
+    let couplePhoto: UIImage?
+
+    private let profileButtonSize: CGFloat = 52
+    private let accentColor = Color(hex: Constants.Colors.accent)
 
     var body: some View {
         HStack(spacing: 0) {
@@ -162,6 +178,47 @@ struct CustomTabBar: View {
             ) {
                 HapticManager.shared.buttonTap()
                 selectedTab = 0
+            }
+
+            // Center profile button
+            Button(action: {
+                HapticManager.shared.buttonTap()
+                selectedTab = 2
+            }) {
+                ZStack {
+                    // Photo or placeholder
+                    if let photo = couplePhoto {
+                        Image(uiImage: photo)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: profileButtonSize, height: profileButtonSize)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        selectedTab == 2 ? accentColor : Color.clear,
+                                        lineWidth: 2
+                                    )
+                            )
+                    } else {
+                        Circle()
+                            .fill(accentColor.opacity(0.15))
+                            .frame(width: profileButtonSize, height: profileButtonSize)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(accentColor)
+                            )
+                            .overlay(
+                                Circle()
+                                    .stroke(
+                                        selectedTab == 2 ? accentColor : Color.clear,
+                                        lineWidth: 2
+                                    )
+                            )
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
 
             // To-Do Tab

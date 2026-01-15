@@ -128,7 +128,8 @@ final class CalendarViewModel: ObservableObject {
             displayedDaysOut = lastViewedDay
             isFirstDay = false
         } else {
-            displayedDaysOut = actualDaysUntilWedding
+            // First time user - start 3 days back so they can swipe through a few tips
+            displayedDaysOut = actualDaysUntilWedding + 3
             isFirstDay = true
 
             Task {

@@ -19,9 +19,13 @@
 	<array>
 		<string>instagram-stories</string>
 		<string>instagram</string>
+		<string>facebook-stories</string>
+		<string>fb</string>
 	</array>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>We send you daily wedding tips to help you plan your perfect day.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Save wedding planning tips to your Reminders so you don't forget important tasks.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>CormorantGaramond-Regular.ttf</string>

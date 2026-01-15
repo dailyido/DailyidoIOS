@@ -10,13 +10,12 @@ struct PhilosophyView: View {
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
     private let accentColor = Color(hex: Constants.Colors.accent)
     private let secondaryText = Color(hex: Constants.Colors.secondaryText)
-    private let cream = Color(red: 0.996, green: 0.976, blue: 0.949)
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Simple background
-                cream.ignoresSafeArea()
+                // Match other onboarding screens
+                Color(hex: Constants.Colors.background).ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -54,27 +53,11 @@ struct PhilosophyView: View {
                                 .padding(.vertical, 8)
 
                             // Message
-                            VStack(spacing: 6) {
-                                Text("find that planning")
-                                    .font(.custom("CormorantGaramond-Regular", size: 22))
-                                    .foregroundColor(secondaryText)
-
-                                HStack(spacing: 8) {
-                                    Text("bit")
-                                        .font(.custom("CormorantGaramond-SemiBold", size: 28))
-                                        .foregroundColor(primaryColor)
-                                    Text("by")
-                                        .font(.custom("CormorantGaramond-Italic", size: 24))
-                                        .foregroundColor(accentColor)
-                                    Text("bit")
-                                        .font(.custom("CormorantGaramond-SemiBold", size: 28))
-                                        .foregroundColor(primaryColor)
-                                }
-
-                                Text("lowers stress")
-                                    .font(.custom("CormorantGaramond-Regular", size: 22))
-                                    .foregroundColor(secondaryText)
-                            }
+                            Text("find that planning\nbit by bit\nlowers stress")
+                                .font(.custom("CormorantGaramond-Medium", size: 28))
+                                .foregroundColor(primaryColor)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(6)
 
                             // Tagline
                             Text("One small step each day.")

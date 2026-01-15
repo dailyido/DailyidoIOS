@@ -15,6 +15,8 @@
 		0BE0DB7F2F08724900E9A51F /* Solar in Frameworks */ = {isa = PBXBuildFile; productRef = G100000004 /* Solar */; };
 		0BE0DB812F0C179400E9A51F /* CormorantGaramond-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */; };
 		0BE0DB832F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0BE0DB822F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf */; };
+		3CB56BB60F755C28E604E14E /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */; };
+		49355FA825BDAF41A85C1C0B /* CachedAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */; };
 		5F3DE165828436611C8A6F28 /* InstagramSharingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */; };
 		A100000001 /* DailyIDoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000001 /* DailyIDoApp.swift */; };
 		A100000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000002 /* AppDelegate.swift */; };
@@ -64,18 +66,22 @@
 		A100000046 /* ChecklistItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000046 /* ChecklistItemView.swift */; };
 		A100000047 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000047 /* SettingsView.swift */; };
 		A100000048 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000048 /* Assets.xcassets */; };
+		CC304584A069FE27C4B37244 /* IntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027044510D463EB67B88B213 /* IntroView.swift */; };
 		E13FCC8D4C401ED648FF9D55 /* CouplePhotoUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */; };
 		E3E8E858039347BDFC0F3B4B /* MeetThePlannersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */; };
 		E88A57A002E8D4186534F7F6 /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DA4D425A2489A41FE768 /* TutorialView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		027044510D463EB67B88B213 /* IntroView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IntroView.swift; sourceTree = "<group>"; };
 		0B55C31B2F156CEF002450AC /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		0B55C31D2F156E65002450AC /* RCPurchaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCPurchaseController.swift; sourceTree = "<group>"; };
 		0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Regular.ttf"; sourceTree = "<group>"; };
 		0BE0DB822F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Bold.ttf"; sourceTree = "<group>"; };
 		15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InstagramSharingService.swift; sourceTree = "<group>"; };
 		3086DA4D425A2489A41FE768 /* TutorialView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
+		4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
+		5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
 		5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MeetThePlannersView.swift; path = DailyIDo/Views/Settings/MeetThePlannersView.swift; sourceTree = "<group>"; };
 		B100000000 /* DailyIDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyIDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B100000001 /* DailyIDoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyIDoApp.swift; sourceTree = "<group>"; };
@@ -224,6 +230,7 @@
 				B100000014 /* SunsetService.swift */,
 				B100000015 /* SubscriptionService.swift */,
 				15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */,
+				5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -279,6 +286,7 @@
 				B100000026 /* CelebrationPopup.swift */,
 				B100000027 /* RemotePopupView.swift */,
 				B100000028 /* PlacesAutocomplete.swift */,
+				4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -299,6 +307,7 @@
 				B100000039 /* LoadingView.swift */,
 				B100000040 /* PlanRevealView.swift */,
 				DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */,
+				027044510D463EB67B88B213 /* IntroView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -468,6 +477,9 @@
 				E3E8E858039347BDFC0F3B4B /* MeetThePlannersView.swift in Sources */,
 				E13FCC8D4C401ED648FF9D55 /* CouplePhotoUploadView.swift in Sources */,
 				E88A57A002E8D4186534F7F6 /* TutorialView.swift in Sources */,
+				49355FA825BDAF41A85C1C0B /* CachedAsyncImage.swift in Sources */,
+				CC304584A069FE27C4B37244 /* IntroView.swift in Sources */,
+				3CB56BB60F755C28E604E14E /* RemindersService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

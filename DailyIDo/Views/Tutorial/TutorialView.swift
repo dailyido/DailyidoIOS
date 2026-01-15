@@ -6,6 +6,11 @@ struct TutorialView: View {
 
     private let steps: [TutorialStep] = [
         TutorialStep(
+            icon: "heart.fill",
+            title: "Welcome to Daily I Do!",
+            description: "Let's walk through how to use the app."
+        ),
+        TutorialStep(
             icon: "hand.draw",
             title: "Swipe for New Tips",
             description: "Swipe left on the calendar to tear away the page and reveal your next daily tip."
@@ -24,6 +29,16 @@ struct TutorialView: View {
             icon: "link",
             title: "Helpful Resources",
             description: "Some tips include links to curated resources and recommendations to help you along the way."
+        ),
+        TutorialStep(
+            icon: "bell",
+            title: "Set Reminders",
+            description: "Tap the bell icon to save a tip to your Apple Reminders so you won't forget important tasks."
+        ),
+        TutorialStep(
+            icon: "calendar.badge.clock",
+            title: "Catch Up Time",
+            description: "We're starting you a few days back so you can swipe through and catch up to today. Each day unlocks a new wedding tip!"
         )
     ]
 
@@ -74,7 +89,7 @@ struct TutorialView: View {
                         dismissTutorial()
                     }
                 }) {
-                    Text(currentStep < steps.count - 1 ? "Next" : "Get Started")
+                    Text(currentStep < steps.count - 1 ? "Next" : "Let's Do This!")
                         .font(.system(size: 17, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -134,8 +149,10 @@ struct TutorialView: View {
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .padding(.horizontal, 24)
+                .frame(minHeight: 80, alignment: .top)
         }
         .padding(.horizontal, 16)
+        .frame(height: 300)
     }
 
     private func dismissTutorial() {

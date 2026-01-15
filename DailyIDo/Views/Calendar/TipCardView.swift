@@ -35,21 +35,14 @@ struct TipCardView: View {
                 VStack(spacing: 20) {
                     // Illustration
                     if let tip = tip, tip.hasIllustration, let urlString = tip.fullIllustrationUrl {
-                        AsyncImage(url: URL(string: urlString)) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(maxHeight: 180)
-                            case .failure:
-                                IllustrationPlaceholder()
-                            case .empty:
-                                ProgressView()
-                                    .frame(height: 150)
-                            @unknown default:
-                                EmptyView()
-                            }
+                        CachedAsyncImage(url: URL(string: urlString)) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 180)
+                        } placeholder: {
+                            ProgressView()
+                                .frame(height: 150)
                         }
                         .padding(.top, 20)
                     }

@@ -1,9 +1,14 @@
 import SwiftUI
+import PhotosUI
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @Environment(\.dismiss) private var dismiss
     @State private var showMeetThePlanners = false
+    @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
+    @State private var selectedPhotoItem: PhotosPickerItem?
+
+    private let accentColor = Color(hex: Constants.Colors.accent)
 
     var body: some View {
         NavigationStack {
@@ -13,6 +18,61 @@ struct SettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
+                        // Couple Photo Section
+                        SettingsSection(title: "Couple Photo") {
+                            HStack(spacing: 20) {
+                                // Photo display
+                                ZStack {
+                                    if let photo = couplePhoto {
+                                        Image(uiImage: photo)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                            .frame(width: 80, height: 80)
+                                            .clipShape(Circle())
+                                    } else {
+                                        Circle()
+                                            .fill(accentColor.opacity(0.15))
+                                            .frame(width: 80, height: 80)
+                                            .overlay(
+                                                Image(systemName: "person.2.fill")
+                                                    .font(.system(size: 28))
+                                                    .foregroundColor(accentColor)
+                                            )
+                                    }
+                                }
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(couplePhoto == nil ? "Add a photo" : "Change photo")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(Color(hex: Constants.Colors.primaryText))
+
+                                    Text("This photo appears in your tab bar")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+
+                                    PhotosPicker(
+                                        selection: $selectedPhotoItem,
+                                        matching: .images
+                                    ) {
+                                        Text(couplePhoto == nil ? "Choose Photo" : "Change")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(accentColor)
+                                    }
+                                    .onChange(of: selectedPhotoItem) { newItem in
+                                        Task {
+                                            if let data = try? await newItem?.loadTransferable(type: Data.self),
+                                               let image = UIImage(data: data) {
+                                                couplePhoto = image
+                                                saveCouplePhoto(image)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Spacer()
+                            }
+                        }
+
                         // Profile Section
                         SettingsSection(title: "Your Details") {
                             VStack(spacing: 16) {
@@ -216,6 +276,17 @@ struct SettingsView: View {
             .sheet(isPresented: $showMeetThePlanners) {
                 MeetThePlannersView()
             }
+        }
+    }
+
+    private func saveCouplePhoto(_ image: UIImage) {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let photoPath = documentsPath.appendingPathComponent("couple_photo.jpg")
+
+        if let data = image.jpegData(compressionQuality: 0.8) {
+            try? data.write(to: photoPath)
+            UserDefaults.standard.set(photoPath.path, forKey: "couplePhotoPath")
+            HapticManager.shared.success()
         }
     }
 }

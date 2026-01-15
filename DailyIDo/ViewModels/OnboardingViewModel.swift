@@ -28,7 +28,7 @@ final class OnboardingViewModel: ObservableObject {
 
     private static let couplePhotoKey = "couplePhotoPath"
 
-    let totalSteps = 13
+    let totalSteps = 14
 
     let loadingMessages = [
         "Creating custom countdown...",
@@ -39,9 +39,9 @@ final class OnboardingViewModel: ObservableObject {
 
     var canContinue: Bool {
         switch currentStep {
-        case 1: return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        case 2: return !partnerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        case 5: return !weddingTown.isEmpty && weddingLatitude != nil && weddingLongitude != nil
+        case 2: return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case 3: return !partnerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case 6: return !weddingTown.isEmpty && weddingLatitude != nil && weddingLongitude != nil
         default: return true
         }
     }
@@ -80,8 +80,24 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     static func loadCouplePhoto() -> UIImage? {
-        guard let path = UserDefaults.standard.string(forKey: couplePhotoKey) else { return nil }
-        return UIImage(contentsOfFile: path)
+        // First try loading from saved path in UserDefaults
+        if let path = UserDefaults.standard.string(forKey: couplePhotoKey),
+           FileManager.default.fileExists(atPath: path),
+           let image = UIImage(contentsOfFile: path) {
+            return image
+        }
+
+        // Fallback: check default location in documents directory
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let photoPath = documentsPath.appendingPathComponent("couple_photo.jpg")
+        if FileManager.default.fileExists(atPath: photoPath.path),
+           let image = UIImage(contentsOfFile: photoPath.path) {
+            // Update UserDefaults with correct path
+            UserDefaults.standard.set(photoPath.path, forKey: couplePhotoKey)
+            return image
+        }
+
+        return nil
     }
 
     func requestNotificationPermission() async {

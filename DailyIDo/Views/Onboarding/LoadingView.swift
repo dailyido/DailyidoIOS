@@ -32,7 +32,7 @@ struct LoadingView: View {
 
                 // Rotating message with elegant typography
                 messageView
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 48)
 
                 Spacer()
 

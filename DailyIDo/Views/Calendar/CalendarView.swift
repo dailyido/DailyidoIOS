@@ -5,9 +5,16 @@ struct CalendarView: View {
     @StateObject private var streakService = StreakService.shared
     @State private var showShareOptions = false
     @State private var showInstagramAlert = false
+    @State private var showFacebookAlert = false
     @State private var isSharing = false
     @State private var shareImage: UIImage?
-    @State private var showTutorial = !UserDefaults.standard.bool(forKey: "hasSeenTutorial")
+    @State private var showTutorial = false
+    @State private var showReminderSuccess = false
+    @State private var showReminderError = false
+    @State private var reminderErrorMessage = ""
+
+    private let shouldShowTutorial = !UserDefaults.standard.bool(forKey: "hasSeenTutorial")
+    private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
 
     var body: some View {
         ZStack {
@@ -27,9 +34,21 @@ struct CalendarView: View {
                 LoadingSpinner()
             } else {
                 VStack(spacing: 0) {
-                    // Share button in top right
-                    HStack {
+                    // Action buttons in top right
+                    HStack(spacing: 20) {
                         Spacer()
+
+                        // Reminder button
+                        Button(action: {
+                            HapticManager.shared.buttonTap()
+                            addToReminders()
+                        }) {
+                            Image(systemName: "bell")
+                                .font(.system(size: 20))
+                                .foregroundColor(Color(hex: Constants.Colors.calendarTextPrimary))
+                        }
+
+                        // Share button
                         Button(action: {
                             HapticManager.shared.buttonTap()
                             showShareOptions = true
@@ -39,10 +58,10 @@ struct CalendarView: View {
                                 .foregroundColor(Color(hex: Constants.Colors.calendarTextPrimary))
                         }
                         .disabled(isSharing)
-                        .padding(.trailing, 24)
-                        .padding(.top, 8)
-                        .padding(.bottom, 12)
                     }
+                    .padding(.trailing, 24)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
 
                     // Calendar card stack
                     GeometryReader { geometry in
@@ -157,26 +176,67 @@ struct CalendarView: View {
         }
         .task {
             await viewModel.loadData()
+
+            // Delay tutorial to allow paywall to fully dismiss first
+            if shouldShowTutorial {
+                try? await Task.sleep(nanoseconds: 800_000_000) // 0.8 second delay
+                withAnimation(.easeIn(duration: 0.3)) {
+                    showTutorial = true
+                }
+            }
         }
-        .confirmationDialog("Share Today's Tip", isPresented: $showShareOptions, titleVisibility: .visible) {
-            Button("Instagram Stories") {
-                shareToInstagram()
-            }
-            Button("Facebook") {
-                shareToFacebook()
-            }
-            Button("Text Message") {
-                shareToMessages()
-            }
-            Button("More Options...") {
-                shareWithSystemSheet()
-            }
-            Button("Cancel", role: .cancel) {}
+        .sheet(isPresented: $showShareOptions) {
+            ShareOptionsSheet(
+                onInstagram: {
+                    showShareOptions = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        shareToInstagram()
+                    }
+                },
+                onFacebook: {
+                    showShareOptions = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        shareToFacebook()
+                    }
+                },
+                onMessages: {
+                    showShareOptions = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        shareToMessages()
+                    }
+                },
+                onMore: {
+                    showShareOptions = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        shareWithSystemSheet()
+                    }
+                },
+                onCancel: {
+                    showShareOptions = false
+                }
+            )
+            .presentationDetents([.height(340)])
+            .presentationDragIndicator(.visible)
         }
         .alert("Instagram Not Installed", isPresented: $showInstagramAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Please install Instagram to share your wedding countdown to Stories.")
+        }
+        .alert("Facebook Not Installed", isPresented: $showFacebookAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Please install Facebook to share your wedding countdown to Stories.")
+        }
+        .alert("Reminder Added", isPresented: $showReminderSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("This tip has been added to your Reminders app.")
+        }
+        .alert("Couldn't Add Reminder", isPresented: $showReminderError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(reminderErrorMessage)
         }
         .sheet(isPresented: Binding(
             get: { shareImage != nil },
@@ -231,14 +291,29 @@ struct CalendarView: View {
 
     private func shareToFacebook() {
         guard !isSharing else { return }
+
+        let sharingService = InstagramSharingService.shared
+
+        guard sharingService.canShareToFacebook else {
+            showFacebookAlert = true
+            return
+        }
+
         isSharing = true
 
         Task { @MainActor in
             if let image = generateShareImage() {
-                // Use system share sheet with Facebook as preferred option
-                shareImage = image
+                sharingService.shareToFacebookStories(image: image) { success in
+                    DispatchQueue.main.async {
+                        isSharing = false
+                        if success {
+                            HapticManager.shared.success()
+                        }
+                    }
+                }
+            } else {
+                isSharing = false
             }
-            isSharing = false
         }
     }
 
@@ -263,6 +338,33 @@ struct CalendarView: View {
                 shareImage = image
             }
             isSharing = false
+        }
+    }
+
+    // MARK: - Reminders
+
+    private func addToReminders() {
+        guard let tip = viewModel.currentTip else { return }
+
+        Task {
+            let title = "Wedding Tip: \(tip.title)"
+            let notes = tip.tipText
+
+            let result = await RemindersService.shared.createReminder(
+                title: title,
+                notes: notes
+            )
+
+            await MainActor.run {
+                switch result {
+                case .success:
+                    HapticManager.shared.success()
+                    showReminderSuccess = true
+                case .failure(let error):
+                    reminderErrorMessage = error.localizedDescription
+                    showReminderError = true
+                }
+            }
         }
     }
 }
@@ -360,7 +462,7 @@ struct CalendarPaperContent: View {
 
                     // Tip illustration from database (only if one exists)
                     if let tip = tip, tip.hasIllustration, let illustrationUrl = tip.fullIllustrationUrl {
-                        AsyncImage(url: URL(string: illustrationUrl)) { image in
+                        CachedAsyncImage(url: URL(string: illustrationUrl)) { image in
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
@@ -369,7 +471,6 @@ struct CalendarPaperContent: View {
                         }
                         .frame(width: 96, height: 96)
                         .id(illustrationUrl)
-                        .transaction { t in t.animation = nil }
                         .padding(.top, 24)
                     }
 
@@ -660,6 +761,115 @@ struct PerforatedEdge: View {
             .padding(.top, 4)
         }
         .background(Color(hex: Constants.Colors.calendarHeader))
+    }
+}
+
+// Custom share options sheet with dark blue text
+struct ShareOptionsSheet: View {
+    let onInstagram: () -> Void
+    let onFacebook: () -> Void
+    let onMessages: () -> Void
+    let onMore: () -> Void
+    let onCancel: () -> Void
+
+    private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
+    private let secondaryText = Color(hex: Constants.Colors.secondaryText)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Title
+            Text("Share Today's Tip")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(primaryColor)
+                .padding(.top, 20)
+                .padding(.bottom, 24)
+
+            // Options
+            VStack(spacing: 0) {
+                ShareOptionButton(
+                    icon: "camera.fill",
+                    title: "Instagram Stories",
+                    color: primaryColor,
+                    action: onInstagram
+                )
+
+                Divider()
+                    .padding(.horizontal, 20)
+
+                ShareOptionButton(
+                    icon: "f.square.fill",
+                    title: "Facebook Stories",
+                    color: primaryColor,
+                    action: onFacebook
+                )
+
+                Divider()
+                    .padding(.horizontal, 20)
+
+                ShareOptionButton(
+                    icon: "message.fill",
+                    title: "Text Message",
+                    color: primaryColor,
+                    action: onMessages
+                )
+
+                Divider()
+                    .padding(.horizontal, 20)
+
+                ShareOptionButton(
+                    icon: "ellipsis.circle.fill",
+                    title: "More Options...",
+                    color: primaryColor,
+                    action: onMore
+                )
+            }
+
+            Spacer()
+
+            // Cancel button
+            Button(action: onCancel) {
+                Text("Cancel")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+            }
+            .padding(.bottom, 20)
+        }
+        .background(Color.white)
+    }
+}
+
+struct ShareOptionButton: View {
+    let icon: String
+    let title: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            HapticManager.shared.buttonTap()
+            action()
+        }) {
+            HStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(color)
+                    .frame(width: 28)
+
+                Text(title)
+                    .font(.system(size: 17))
+                    .foregroundColor(color)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(color.opacity(0.4))
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+        }
     }
 }
 
