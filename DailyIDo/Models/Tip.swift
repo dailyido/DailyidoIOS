@@ -35,6 +35,47 @@ struct Tip: Codable, Identifiable, Equatable {
         case createdAt = "created_at"
     }
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        tipText = try container.decode(String.self, forKey: .tipText)
+        hasIllustration = try container.decode(Bool.self, forKey: .hasIllustration)
+        illustrationUrl = try container.decodeIfPresent(String.self, forKey: .illustrationUrl)
+        monthCategory = try container.decodeIfPresent(String.self, forKey: .monthCategory)
+        specificDay = try container.decodeIfPresent(Int.self, forKey: .specificDay)
+        priority = try container.decode(Int.self, forKey: .priority)
+        onChecklist = try container.decode(Bool.self, forKey: .onChecklist)
+        affiliateUrl = try container.decodeIfPresent(String.self, forKey: .affiliateUrl)
+        affiliateButtonText = try container.decodeIfPresent(String.self, forKey: .affiliateButtonText)
+        weddingType = try container.decodeIfPresent(String.self, forKey: .weddingType)
+        isActive = try container.decode(Bool.self, forKey: .isActive)
+        // Default to false if fun_tip column doesn't exist in database yet
+        funTip = try container.decodeIfPresent(Bool.self, forKey: .funTip) ?? false
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+    }
+
+    init(id: UUID, title: String, tipText: String, hasIllustration: Bool, illustrationUrl: String?,
+         monthCategory: String?, specificDay: Int?, priority: Int, onChecklist: Bool,
+         affiliateUrl: String?, affiliateButtonText: String?, weddingType: String?,
+         isActive: Bool, funTip: Bool, createdAt: Date?) {
+        self.id = id
+        self.title = title
+        self.tipText = tipText
+        self.hasIllustration = hasIllustration
+        self.illustrationUrl = illustrationUrl
+        self.monthCategory = monthCategory
+        self.specificDay = specificDay
+        self.priority = priority
+        self.onChecklist = onChecklist
+        self.affiliateUrl = affiliateUrl
+        self.affiliateButtonText = affiliateButtonText
+        self.weddingType = weddingType
+        self.isActive = isActive
+        self.funTip = funTip
+        self.createdAt = createdAt
+    }
+
     var fullIllustrationUrl: String? {
         guard let illustrationUrl = illustrationUrl, hasIllustration else { return nil }
         // URL-encode the filename to handle spaces and special characters
