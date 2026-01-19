@@ -152,4 +152,116 @@ final class SupabaseService {
 
         return response
     }
+
+    // MARK: - Fun Tips Operations
+
+    func fetchAllFunTips() async throws -> [FunTip] {
+        let response: [FunTip] = try await client
+            .from("fun_tips")
+            .select()
+            .eq("is_active", value: true)
+            .execute()
+            .value
+
+        return response
+    }
+
+    func fetchFunTipsExcluding(ids: [UUID], excludeCategory: String?) async throws -> [FunTip] {
+        var query = client
+            .from("fun_tips")
+            .select()
+            .eq("is_active", value: true)
+
+        // Note: Supabase Swift doesn't have a direct "not in" operator,
+        // so we'll filter in memory after fetching
+        let response: [FunTip] = try await query.execute().value
+
+        return response.filter { tip in
+            let notInExcludedIds = !ids.contains(tip.id)
+            let notInExcludedCategory = excludeCategory == nil || tip.category != excludeCategory
+            return notInExcludedIds && notInExcludedCategory
+        }
+    }
+
+    func fetchUserShownFunTipIds(userId: UUID) async throws -> [UUID] {
+        let response: [UserFunTipShown] = try await client
+            .from("user_fun_tips_shown")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+            .value
+
+        return response.map { $0.funTipId }
+    }
+
+    func fetchLastShownFunTipCategory(userId: UUID) async throws -> String? {
+        struct FunTipJoin: Codable {
+            let funTipId: UUID
+            let category: String?
+
+            enum CodingKeys: String, CodingKey {
+                case funTipId = "fun_tip_id"
+                case category
+            }
+        }
+
+        // Fetch the most recent shown fun tip with its category
+        let response: [UserFunTipShown] = try await client
+            .from("user_fun_tips_shown")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .order("shown_at", ascending: false)
+            .limit(1)
+            .execute()
+            .value
+
+        guard let lastShown = response.first else { return nil }
+
+        // Fetch the fun tip to get its category
+        let funTip: FunTip? = try await client
+            .from("fun_tips")
+            .select()
+            .eq("id", value: lastShown.funTipId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        return funTip?.category
+    }
+
+    func recordFunTipShown(userId: UUID, funTipId: UUID, daysOut: Int) async throws {
+        let record = UserFunTipShown(
+            id: UUID(),
+            userId: userId,
+            funTipId: funTipId,
+            shownAt: Date(),
+            shownOnDay: daysOut
+        )
+
+        try await client
+            .from("user_fun_tips_shown")
+            .upsert(record)
+            .execute()
+    }
+
+    func resetFunTipHistory(userId: UUID) async throws {
+        try await client
+            .from("user_fun_tips_shown")
+            .delete()
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+    }
+
+    func fetchFirst50CriticalTips() async throws -> [Tip] {
+        let response: [Tip] = try await client
+            .from("wedding_tips")
+            .select()
+            .eq("is_active", value: true)
+            .order("priority", ascending: true)
+            .limit(50)
+            .execute()
+            .value
+
+        return response
+    }
 }

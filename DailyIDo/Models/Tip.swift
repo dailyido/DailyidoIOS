@@ -14,6 +14,7 @@ struct Tip: Codable, Identifiable, Equatable {
     let affiliateButtonText: String?
     let weddingType: String?
     let isActive: Bool
+    let funTip: Bool
     let createdAt: Date?
 
     enum CodingKeys: String, CodingKey {
@@ -30,6 +31,7 @@ struct Tip: Codable, Identifiable, Equatable {
         case affiliateButtonText = "affiliate_button_text"
         case weddingType = "wedding_type"
         case isActive = "is_active"
+        case funTip = "fun_tip"
         case createdAt = "created_at"
     }
 

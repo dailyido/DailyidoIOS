@@ -144,6 +144,9 @@ final class OnboardingViewModel: ObservableObject {
             // Update user profile
             guard var user = authService.currentUser else { return }
 
+            // Calculate initial days until wedding for long engagement logic
+            let initialDays = Date().daysUntil(weddingDate)
+
             user = User(
                 id: user.id,
                 email: user.email,
@@ -162,6 +165,7 @@ final class OnboardingViewModel: ObservableObject {
                 tipsViewedCount: user.tipsViewedCount,
                 onboardingComplete: true,
                 isSubscribed: user.isSubscribed,
+                initialDaysUntilWedding: initialDays,
                 createdAt: user.createdAt ?? Date()
             )
 

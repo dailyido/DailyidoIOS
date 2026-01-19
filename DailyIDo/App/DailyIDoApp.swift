@@ -63,6 +63,7 @@ struct MainTabView: View {
     @State private var showRemotePopup = false
     @State private var currentPopup: RemotePopup?
     @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
+    @State private var isTutorialShowing = false
 
     var body: some View {
         ZStack {
@@ -71,19 +72,27 @@ struct MainTabView: View {
                 Group {
                     switch selectedTab {
                     case 0:
-                        CalendarView()
+                        CalendarView(isTutorialShowing: $isTutorialShowing)
                     case 1:
                         ChecklistView()
                     case 2:
                         SettingsView()
                     default:
-                        CalendarView()
+                        CalendarView(isTutorialShowing: $isTutorialShowing)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 // Custom Tab Bar
-                CustomTabBar(selectedTab: $selectedTab, couplePhoto: couplePhoto)
+                ZStack {
+                    CustomTabBar(selectedTab: $selectedTab, couplePhoto: couplePhoto)
+
+                    // Dim overlay when tutorial is showing
+                    if isTutorialShowing {
+                        Color.black.opacity(0.4)
+                            .allowsHitTesting(false)
+                    }
+                }
             }
             .ignoresSafeArea(.keyboard)
             .onChange(of: selectedTab) { newTab in

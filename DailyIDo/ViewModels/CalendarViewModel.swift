@@ -20,6 +20,9 @@ final class CalendarViewModel: ObservableObject {
     @Published var tearOpacity: Double = 1.0    // For fade out during tear
     @Published var isTearing = false            // True during tear completion animation
 
+    // MARK: - Tip Cache
+    private var tipCache: [Int: Tip] = [:]
+
     // Velocity tracking
     private var lastDragOffset: CGFloat = 0
     private var lastDragTime: Date = Date()
@@ -54,8 +57,8 @@ final class CalendarViewModel: ObservableObject {
     // Can go back (swipe right) to see tips for days further from wedding
     // Users can always browse backwards through available tips
     var canGoBack: Bool {
-        // Can go back as long as there are more tips available (up to 365 days out)
-        return displayedDaysOut < 365
+        // Can go back as long as there are more tips available (up to 730 days / 2 years out)
+        return displayedDaysOut < 730
     }
 
     // Number of pages that can be torn to catch up
@@ -112,6 +115,11 @@ final class CalendarViewModel: ObservableObject {
             try await tipService.loadTips()
             try await streakService.updateStreak()
 
+            // Load fun tip history for smart tip selection
+            if let user = user {
+                await tipService.loadUserFunTipHistory(userId: user.id)
+            }
+
             calculateInitialPosition()
             updateCurrentTip()
         } catch {
@@ -141,19 +149,96 @@ final class CalendarViewModel: ObservableObject {
     func updateCurrentTip() {
         guard let user = user else { return }
 
-        currentTip = tipService.getTipForDay(
-            daysUntilWedding: displayedDaysOut,
-            isTentedWedding: user.isTentedWedding
+        // Use the new user-aware tip selection that handles long engagements
+        let tip = tipService.getTipForDay(
+            user: user,
+            daysUntilWedding: displayedDaysOut
         )
+        currentTip = tip
+
+        // Cache current tip and pre-cache nearby tips
+        if let tip = tip {
+            tipCache[displayedDaysOut] = tip
+        }
+        precacheNearbyTips()
+    }
+
+    // Get tip from cache (used for preview pages)
+    func cachedTip(for daysOut: Int) -> Tip? {
+        // Return from cache if available
+        if let cached = tipCache[daysOut] {
+            return cached
+        }
+
+        // Otherwise fetch and cache it
+        guard let user = user else { return nil }
+        // Use the new user-aware tip selection
+        let tip = tipService.getTipForDay(
+            user: user,
+            daysUntilWedding: daysOut
+        )
+        if let tip = tip {
+            tipCache[daysOut] = tip
+            // Pre-cache the image
+            precacheImage(for: tip)
+        }
+        return tip
     }
 
     // Get tip for preview (when dragging to see next/previous)
     func previewTip(for daysOut: Int) -> Tip? {
-        guard let user = user else { return nil }
-        return tipService.getTipForDay(
-            daysUntilWedding: daysOut,
-            isTentedWedding: user.isTentedWedding
-        )
+        return cachedTip(for: daysOut)
+    }
+
+    // Pre-cache tips for nearby days (previous 1, next 3)
+    private func precacheNearbyTips() {
+        guard let user = user else { return }
+
+        let daysToCache = [
+            displayedDaysOut - 3,
+            displayedDaysOut - 2,
+            displayedDaysOut - 1,
+            displayedDaysOut + 1
+        ]
+
+        for day in daysToCache where day > 0 {
+            if tipCache[day] == nil {
+                // Use the new user-aware tip selection
+                if let tip = tipService.getTipForDay(
+                    user: user,
+                    daysUntilWedding: day
+                ) {
+                    tipCache[day] = tip
+                    precacheImage(for: tip)
+                }
+            }
+        }
+    }
+
+    // Pre-cache illustration image for a tip
+    private func precacheImage(for tip: Tip) {
+        guard tip.hasIllustration, let urlString = tip.fullIllustrationUrl, let url = URL(string: urlString) else {
+            return
+        }
+
+        // Check if already cached
+        if ImageCache.shared.get(for: url) != nil {
+            return
+        }
+
+        // Fetch and cache in background
+        Task.detached(priority: .low) {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        ImageCache.shared.set(image, for: url)
+                    }
+                }
+            } catch {
+                // Silently fail - will load on demand
+            }
+        }
     }
 
     // MARK: - Drag Handling with Snap Detection
@@ -248,7 +333,7 @@ final class CalendarViewModel: ObservableObject {
         // GO BACK (swipe right): translation is positive
         // Complete if: swiped far enough right OR fast enough right
         let shouldGoBack = translation > 0 && canGoBack &&
-            (translation > minSwipeDistance || velocity > velocityThreshold)
+            (abs(translation) > minSwipeDistance || abs(velocity) > velocityThreshold)
 
         if shouldCompleteTear {
             completeTear()
@@ -444,6 +529,7 @@ final class CalendarViewModel: ObservableObject {
             tipsViewedCount: count,
             onboardingComplete: user.onboardingComplete,
             isSubscribed: user.isSubscribed,
+            initialDaysUntilWedding: user.initialDaysUntilWedding,
             createdAt: user.createdAt
         )
 
@@ -471,6 +557,7 @@ final class CalendarViewModel: ObservableObject {
             tipsViewedCount: user.tipsViewedCount,
             onboardingComplete: user.onboardingComplete,
             isSubscribed: user.isSubscribed,
+            initialDaysUntilWedding: user.initialDaysUntilWedding,
             createdAt: user.createdAt
         )
 

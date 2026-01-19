@@ -52,6 +52,7 @@ struct ChecklistGroupView: View {
                     affiliateButtonText: nil,
                     weddingType: nil,
                     isActive: true,
+                    funTip: false,
                     createdAt: Date()
                 ),
                 isCompleted: false
@@ -71,6 +72,7 @@ struct ChecklistGroupView: View {
                     affiliateButtonText: nil,
                     weddingType: nil,
                     isActive: true,
+                    funTip: false,
                     createdAt: Date()
                 ),
                 isCompleted: true

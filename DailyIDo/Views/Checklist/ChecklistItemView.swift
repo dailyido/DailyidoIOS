@@ -50,7 +50,7 @@ struct ChecklistItemView: View {
                 .buttonStyle(PlainButtonStyle())
                 .padding(.top, 2)
 
-                // Content
+                // Content - tappable to expand
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.tip.title)
                         .font(.system(size: 16, weight: .medium))
@@ -66,6 +66,10 @@ struct ChecklistItemView: View {
                             .font(.system(size: 12))
                             .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
                     }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onExpand()
                 }
 
                 Spacer()
@@ -141,6 +145,7 @@ struct ChecklistItemView: View {
                     affiliateButtonText: "Find Photographers",
                     weddingType: nil,
                     isActive: true,
+                    funTip: false,
                     createdAt: Date()
                 ),
                 isCompleted: false

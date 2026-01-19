@@ -69,6 +69,7 @@
 		CC304584A069FE27C4B37244 /* IntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027044510D463EB67B88B213 /* IntroView.swift */; };
 		E13FCC8D4C401ED648FF9D55 /* CouplePhotoUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */; };
 		E3E8E858039347BDFC0F3B4B /* MeetThePlannersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */; };
+		E4FF6B303C8130B0B3C84A87 /* FunTip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 841D4F19F6F50370F16F863E /* FunTip.swift */; };
 		E88A57A002E8D4186534F7F6 /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DA4D425A2489A41FE768 /* TutorialView.swift */; };
 /* End PBXBuildFile section */
 
@@ -83,6 +84,7 @@
 		4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
 		5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
 		5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MeetThePlannersView.swift; path = DailyIDo/Views/Settings/MeetThePlannersView.swift; sourceTree = "<group>"; };
+		841D4F19F6F50370F16F863E /* FunTip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FunTip.swift; sourceTree = "<group>"; };
 		B100000000 /* DailyIDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyIDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B100000001 /* DailyIDoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyIDoApp.swift; sourceTree = "<group>"; };
 		B100000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -214,6 +216,7 @@
 				B100000005 /* ChecklistItem.swift */,
 				B100000006 /* RemotePopup.swift */,
 				B100000007 /* AppConfig.swift */,
+				841D4F19F6F50370F16F863E /* FunTip.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -480,6 +483,7 @@
 				49355FA825BDAF41A85C1C0B /* CachedAsyncImage.swift in Sources */,
 				CC304584A069FE27C4B37244 /* IntroView.swift in Sources */,
 				3CB56BB60F755C28E604E14E /* RemindersService.swift in Sources */,
+				E4FF6B303C8130B0B3C84A87 /* FunTip.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -10,7 +10,12 @@ final class RemindersService {
 
     /// Check if we have permission to access reminders
     var hasPermission: Bool {
-        EKEventStore.authorizationStatus(for: .reminder) == .fullAccess
+        let status = EKEventStore.authorizationStatus(for: .reminder)
+        if #available(iOS 17.0, *) {
+            return status == .fullAccess
+        } else {
+            return status == .authorized
+        }
     }
 
     /// Request permission to access reminders
@@ -29,9 +34,12 @@ final class RemindersService {
 
     /// Create a reminder with the given title and notes
     func createReminder(title: String, notes: String, dueDate: Date? = nil) async -> Result<Void, RemindersError> {
-        // Check/request permission first
-        guard hasPermission || await requestPermission() else {
-            return .failure(.permissionDenied)
+        // Check permission first, request if needed
+        if !hasPermission {
+            let granted = await requestPermission()
+            if !granted {
+                return .failure(.permissionDenied)
+            }
         }
 
         // Get the default reminders calendar

@@ -67,6 +67,7 @@ final class SubscriptionService: ObservableObject {
                     tipsViewedCount: user.tipsViewedCount,
                     onboardingComplete: user.onboardingComplete,
                     isSubscribed: isPremium,
+                    initialDaysUntilWedding: user.initialDaysUntilWedding,
                     createdAt: user.createdAt
                 )
                 try? await AuthService.shared.updateUser(user)
@@ -133,6 +134,7 @@ final class SubscriptionService: ObservableObject {
                 tipsViewedCount: user.tipsViewedCount,
                 onboardingComplete: user.onboardingComplete,
                 isSubscribed: isPremium,
+                initialDaysUntilWedding: user.initialDaysUntilWedding,
                 createdAt: user.createdAt
             )
             try await AuthService.shared.updateUser(user)

@@ -18,6 +18,7 @@ struct User: Codable, Identifiable {
     var tipsViewedCount: Int
     var onboardingComplete: Bool
     var isSubscribed: Bool
+    var initialDaysUntilWedding: Int?
     var createdAt: Date?
 
     enum CodingKeys: String, CodingKey {
@@ -38,6 +39,7 @@ struct User: Codable, Identifiable {
         case tipsViewedCount = "tips_viewed_count"
         case onboardingComplete = "onboarding_complete"
         case isSubscribed = "is_subscribed"
+        case initialDaysUntilWedding = "initial_days_until_wedding"
         case createdAt = "created_at"
     }
 
@@ -58,6 +60,7 @@ struct User: Codable, Identifiable {
          tipsViewedCount: Int = 0,
          onboardingComplete: Bool = false,
          isSubscribed: Bool = false,
+         initialDaysUntilWedding: Int? = nil,
          createdAt: Date? = nil) {
         self.id = id
         self.email = email
@@ -76,6 +79,7 @@ struct User: Codable, Identifiable {
         self.tipsViewedCount = tipsViewedCount
         self.onboardingComplete = onboardingComplete
         self.isSubscribed = isSubscribed
+        self.initialDaysUntilWedding = initialDaysUntilWedding
         self.createdAt = createdAt
     }
 

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CalendarView: View {
+    @Binding var isTutorialShowing: Bool
+
     @StateObject private var viewModel = CalendarViewModel()
     @StateObject private var streakService = StreakService.shared
     @State private var showShareOptions = false
@@ -13,7 +15,10 @@ struct CalendarView: View {
     @State private var showReminderError = false
     @State private var reminderErrorMessage = ""
 
-    private let shouldShowTutorial = !UserDefaults.standard.bool(forKey: "hasSeenTutorial")
+    // Computed at check time, not at view init
+    private var shouldShowTutorial: Bool {
+        !UserDefaults.standard.bool(forKey: "hasSeenTutorial")
+    }
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
 
     var body: some View {
@@ -35,7 +40,7 @@ struct CalendarView: View {
             } else {
                 VStack(spacing: 0) {
                     // Action buttons in top right
-                    HStack(spacing: 20) {
+                    HStack(alignment: .bottom, spacing: 4) {
                         Spacer()
 
                         // Reminder button
@@ -44,9 +49,10 @@ struct CalendarView: View {
                             addToReminders()
                         }) {
                             Image(systemName: "bell")
-                                .font(.system(size: 20))
+                                .font(.system(size: 22))
                                 .foregroundColor(Color(hex: Constants.Colors.calendarTextPrimary))
                         }
+                        .frame(width: 44, height: 44, alignment: .bottom)
 
                         // Share button
                         Button(action: {
@@ -54,14 +60,15 @@ struct CalendarView: View {
                             showShareOptions = true
                         }) {
                             Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 20))
+                                .font(.system(size: 22))
                                 .foregroundColor(Color(hex: Constants.Colors.calendarTextPrimary))
                         }
+                        .frame(width: 44, height: 44, alignment: .bottom)
                         .disabled(isSharing)
                     }
-                    .padding(.trailing, 24)
+                    .padding(.trailing, 12)
                     .padding(.top, 8)
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 4)
 
                     // Calendar card stack
                     GeometryReader { geometry in
@@ -72,33 +79,33 @@ struct CalendarView: View {
 
                             // Tearable paper stack
                             ZStack(alignment: .top) {
-                                // Preview page (shown behind when dragging)
+                                // Preview page (shown behind when dragging or during tear animation)
                                 Group {
-                                    if viewModel.dragOffset > 20 {
-                                        // Swiping right - show previous day's tip
+                                    if viewModel.dragOffset > 30 || (viewModel.isTearing && viewModel.tearDirection == .right) {
+                                        // Swiping right - show previous day's tip (going back in time)
                                         CalendarPaperContent(
                                             daysUntilWedding: viewModel.daysUntilWedding + 1,
-                                            tip: viewModel.previewTip(for: viewModel.daysUntilWedding + 1),
+                                            tip: viewModel.cachedTip(for: viewModel.daysUntilWedding + 1),
                                             canTear: true,
-                                            canGoBack: viewModel.daysUntilWedding + 1 < 365,
+                                            canGoBack: viewModel.daysUntilWedding + 1 < 730,
                                             statusMessage: ""
                                         )
-                                    } else if viewModel.dragOffset < -20 {
+                                    } else if viewModel.dragOffset < -30 || (viewModel.isTearing && viewModel.tearDirection == .left) {
                                         // Swiping left - show next day or "caught up" message
                                         if viewModel.canTear {
                                             CalendarPaperContent(
                                                 daysUntilWedding: viewModel.daysUntilWedding - 1,
-                                                tip: viewModel.previewTip(for: viewModel.daysUntilWedding - 1),
+                                                tip: viewModel.cachedTip(for: viewModel.daysUntilWedding - 1),
                                                 canTear: viewModel.daysUntilWedding - 1 > viewModel.actualDaysUntilWedding,
                                                 canGoBack: true,
                                                 statusMessage: ""
                                             )
                                         } else {
-                                            // Show "caught up" preview
                                             CalendarCaughtUpPreview()
                                         }
                                     }
                                 }
+                                .zIndex(0)
 
                                 // Main tearable paper page
                                 CalendarPaperContent(
@@ -115,6 +122,7 @@ struct CalendarView: View {
                                     progress: viewModel.tearProgress,
                                     opacity: viewModel.tearOpacity
                                 ))
+                                .zIndex(1)
                                 .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.8), value: viewModel.dragOffset)
                                 .animation(.easeOut(duration: 0.2), value: viewModel.tearOpacity)
                             }
@@ -182,8 +190,12 @@ struct CalendarView: View {
                 try? await Task.sleep(nanoseconds: 800_000_000) // 0.8 second delay
                 withAnimation(.easeIn(duration: 0.3)) {
                     showTutorial = true
+                    isTutorialShowing = true
                 }
             }
+        }
+        .onChange(of: showTutorial) { newValue in
+            isTutorialShowing = newValue
         }
         .sheet(isPresented: $showShareOptions) {
             ShareOptionsSheet(
@@ -874,5 +886,5 @@ struct ShareOptionButton: View {
 }
 
 #Preview {
-    CalendarView()
+    CalendarView(isTutorialShowing: .constant(false))
 }

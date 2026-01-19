@@ -59,6 +59,7 @@ final class SettingsViewModel: ObservableObject {
             tipsViewedCount: user.tipsViewedCount,
             onboardingComplete: user.onboardingComplete,
             isSubscribed: user.isSubscribed,
+            initialDaysUntilWedding: user.initialDaysUntilWedding,
             createdAt: user.createdAt
         )
 
@@ -148,6 +149,7 @@ final class SettingsViewModel: ObservableObject {
             tipsViewedCount: 0,  // Reset tips viewed
             onboardingComplete: false,  // Reset onboarding
             isSubscribed: user.isSubscribed,
+            initialDaysUntilWedding: user.initialDaysUntilWedding,
             createdAt: user.createdAt
         )
 
@@ -155,6 +157,8 @@ final class SettingsViewModel: ObservableObject {
             try await authService.updateUser(user)
             // Clear local onboarding flag
             UserDefaults.standard.set(false, forKey: Constants.UserDefaultsKeys.hasCompletedOnboarding)
+            // Clear tutorial seen flag so it shows again
+            UserDefaults.standard.set(false, forKey: "hasSeenTutorial")
             HapticManager.shared.success()
         } catch {
             showError = true

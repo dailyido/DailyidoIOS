@@ -58,6 +58,7 @@ final class StreakService: ObservableObject {
                     tipsViewedCount: user.tipsViewedCount,
                     onboardingComplete: user.onboardingComplete,
                     isSubscribed: user.isSubscribed,
+                    initialDaysUntilWedding: user.initialDaysUntilWedding,
                     createdAt: user.createdAt
                 )
             } else {
@@ -80,6 +81,7 @@ final class StreakService: ObservableObject {
                     tipsViewedCount: user.tipsViewedCount,
                     onboardingComplete: user.onboardingComplete,
                     isSubscribed: user.isSubscribed,
+                    initialDaysUntilWedding: user.initialDaysUntilWedding,
                     createdAt: user.createdAt
                 )
             }
@@ -103,6 +105,7 @@ final class StreakService: ObservableObject {
                 tipsViewedCount: user.tipsViewedCount,
                 onboardingComplete: user.onboardingComplete,
                 isSubscribed: user.isSubscribed,
+                initialDaysUntilWedding: user.initialDaysUntilWedding,
                 createdAt: user.createdAt
             )
         }

@@ -163,6 +163,7 @@ struct IllustrationPlaceholder: View {
             affiliateButtonText: nil,
             weddingType: nil,
             isActive: true,
+            funTip: false,
             createdAt: Date()
         ),
         dayOffset: 0,
