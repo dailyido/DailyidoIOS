@@ -25,6 +25,35 @@ struct FunTip: Codable, Identifiable, Equatable {
         case createdAt = "created_at"
     }
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        tipText = try container.decode(String.self, forKey: .tipText)
+        hasIllustration = try container.decodeIfPresent(Bool.self, forKey: .hasIllustration) ?? false
+        illustrationUrl = try container.decodeIfPresent(String.self, forKey: .illustrationUrl)
+        // Default to "general" if category column doesn't exist
+        category = try container.decodeIfPresent(String.self, forKey: .category) ?? "general"
+        affiliateUrl = try container.decodeIfPresent(String.self, forKey: .affiliateUrl)
+        affiliateButtonText = try container.decodeIfPresent(String.self, forKey: .affiliateButtonText)
+        isActive = try container.decodeIfPresent(Bool.self, forKey: .isActive) ?? true
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+    }
+
+    init(id: UUID, title: String, tipText: String, hasIllustration: Bool, illustrationUrl: String?,
+         category: String, affiliateUrl: String?, affiliateButtonText: String?, isActive: Bool, createdAt: Date?) {
+        self.id = id
+        self.title = title
+        self.tipText = tipText
+        self.hasIllustration = hasIllustration
+        self.illustrationUrl = illustrationUrl
+        self.category = category
+        self.affiliateUrl = affiliateUrl
+        self.affiliateButtonText = affiliateButtonText
+        self.isActive = isActive
+        self.createdAt = createdAt
+    }
+
     var fullIllustrationUrl: String? {
         guard let illustrationUrl = illustrationUrl, hasIllustration else { return nil }
         let encodedFilename = illustrationUrl.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? illustrationUrl

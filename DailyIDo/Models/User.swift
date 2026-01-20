@@ -43,6 +43,29 @@ struct User: Codable, Identifiable {
         case createdAt = "created_at"
     }
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        partnerName = try container.decodeIfPresent(String.self, forKey: .partnerName)
+        weddingDate = try container.decodeIfPresent(Date.self, forKey: .weddingDate)
+        weddingTown = try container.decodeIfPresent(String.self, forKey: .weddingTown)
+        weddingLatitude = try container.decodeIfPresent(Double.self, forKey: .weddingLatitude)
+        weddingLongitude = try container.decodeIfPresent(Double.self, forKey: .weddingLongitude)
+        isTentedWedding = try container.decodeIfPresent(Bool.self, forKey: .isTentedWedding) ?? false
+        timezone = try container.decodeIfPresent(String.self, forKey: .timezone)
+        lastViewedDay = try container.decodeIfPresent(Int.self, forKey: .lastViewedDay)
+        currentStreak = try container.decodeIfPresent(Int.self, forKey: .currentStreak) ?? 0
+        longestStreak = try container.decodeIfPresent(Int.self, forKey: .longestStreak) ?? 0
+        lastStreakDate = try container.decodeIfPresent(Date.self, forKey: .lastStreakDate)
+        tipsViewedCount = try container.decodeIfPresent(Int.self, forKey: .tipsViewedCount) ?? 0
+        onboardingComplete = try container.decodeIfPresent(Bool.self, forKey: .onboardingComplete) ?? false
+        isSubscribed = try container.decodeIfPresent(Bool.self, forKey: .isSubscribed) ?? false
+        initialDaysUntilWedding = try container.decodeIfPresent(Int.self, forKey: .initialDaysUntilWedding)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+    }
+
     init(id: UUID = UUID(),
          email: String? = nil,
          name: String? = nil,
