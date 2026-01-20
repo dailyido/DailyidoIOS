@@ -18,8 +18,23 @@ final class TipService: ObservableObject {
 
     func loadTips() async throws {
         let fetchedTips = try await supabase.fetchAllTips()
-        let fetchedFunTips = try await supabase.fetchAllFunTips()
-        let fetchedCriticalTips = try await supabase.fetchFirst50CriticalTips()
+
+        // Fun tips are optional - tables may not exist yet
+        // Fail gracefully so regular tips still work
+        var fetchedFunTips: [FunTip] = []
+        var fetchedCriticalTips: [Tip] = []
+
+        do {
+            fetchedFunTips = try await supabase.fetchAllFunTips()
+        } catch {
+            print("⚠️ Fun tips table not available yet: \(error.localizedDescription)")
+        }
+
+        do {
+            fetchedCriticalTips = try await supabase.fetchFirst50CriticalTips()
+        } catch {
+            print("⚠️ Could not fetch critical tips: \(error.localizedDescription)")
+        }
 
         await MainActor.run {
             self.tips = fetchedTips
@@ -61,9 +76,18 @@ final class TipService: ObservableObject {
     // MARK: - Long Engagement Logic (>350 days)
 
     private func getTipForLongEngagement(user: User, daysUntilWedding: Int) -> Tip? {
+        // If fun tips system isn't set up yet, fall back to normal engagement logic
+        // This allows the app to work before fun_tips table exists
+        if funTips.isEmpty && criticalTips.isEmpty {
+            return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
+        }
+
         guard let initialDays = user.initialDaysUntilWedding, initialDays > 350 else {
             // Fallback if initialDaysUntilWedding not set
-            return getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip()
+            if let funTip = getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip() {
+                return funTip
+            }
+            return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
         }
 
         // Calculate total days in "long engagement" phase
@@ -74,7 +98,10 @@ final class TipService: ObservableObject {
 
         // We need to spread 50 critical tips across totalLongEngagementDays
         guard totalLongEngagementDays > 0 else {
-            return getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip()
+            if let funTip = getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip() {
+                return funTip
+            }
+            return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
         }
 
         let tipsPerDay = 50.0 / Double(totalLongEngagementDays)
@@ -92,14 +119,20 @@ final class TipService: ObservableObject {
             // Filter for tented wedding if applicable
             if !user.isTentedWedding && tip.weddingType == "tented" {
                 // Skip tented-specific tips for non-tented weddings, show fun tip instead
-                return getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip()
+                if let funTip = getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip() {
+                    return funTip
+                }
+                return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
             }
 
             return tip
         }
 
-        // Otherwise, show a fun tip
-        return getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip()
+        // Otherwise, show a fun tip (or fall back to normal logic)
+        if let funTip = getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip() {
+            return funTip
+        }
+        return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
     }
 
     // MARK: - Normal Engagement Logic (≤350 days)
@@ -110,8 +143,9 @@ final class TipService: ObservableObject {
             return nil
         }
 
-        // If this tip is marked as fun_tip, pull a random fun tip instead
-        if masterTip.funTip {
+        // If this tip is marked as fun_tip and fun tips exist, pull a random fun tip
+        // Otherwise just use the master tip (graceful fallback when fun_tips table doesn't exist)
+        if masterTip.funTip && !funTips.isEmpty {
             return getRandomFunTip(excludeCategory: lastShownFunTipCategory)?.toTip() ?? masterTip
         }
 
