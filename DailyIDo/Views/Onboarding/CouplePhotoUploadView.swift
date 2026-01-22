@@ -64,6 +64,7 @@ struct CouplePhotoUploadView: View {
                         .font(.system(size: 16))
                         .foregroundColor(Color(hex: Constants.Colors.secondaryText))
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 32)
                         .padding(.top, 10)
 

@@ -46,7 +46,7 @@ struct PlanRevealView: View {
                 .padding(.bottom, 48)
                 .opacity(showButton ? 1 : 0)
             }
-            .padding(.top, 60)
+            .padding(.top, 24)
         }
         .background(backgroundLayer)
         .onAppear {
@@ -89,7 +89,7 @@ struct PlanRevealView: View {
     private var valueStackSection: some View {
         VStack(spacing: 20) {
             // Headline
-            Text("Your Custom Wedding Plan is Ready")
+            Text("Your Custom Wedding Calendar is Ready")
                 .font(.custom("CormorantGaramond-Bold", size: 28))
                 .foregroundColor(primaryColor)
                 .multilineTextAlignment(.center)

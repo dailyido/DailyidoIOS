@@ -5,6 +5,7 @@ struct PlacesAutocompleteField: View {
     @Binding var selectedPlace: String
     @Binding var latitude: Double?
     @Binding var longitude: Double?
+    var autoFocus: Bool = false
 
     @StateObject private var locationService = LocationService.shared
     @State private var searchText = ""
@@ -87,6 +88,12 @@ struct PlacesAutocompleteField: View {
         }
         .onAppear {
             searchText = selectedPlace
+            if autoFocus {
+                // Small delay to ensure view is ready
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isFocused = true
+                }
+            }
         }
     }
 

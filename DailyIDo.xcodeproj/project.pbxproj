@@ -29,6 +29,7 @@
 		A100000009 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000009 /* AuthService.swift */; };
 		A100000010 /* TipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000010 /* TipService.swift */; };
 		A100000011 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011 /* StreakService.swift */; };
+		A100000060 /* RandomIllustrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000060 /* RandomIllustrationService.swift */; };
 		A100000012 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012 /* NotificationService.swift */; };
 		A100000013 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013 /* LocationService.swift */; };
 		A100000014 /* SunsetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000014 /* SunsetService.swift */; };
@@ -52,7 +53,8 @@
 		A100000032 /* DatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000032 /* DatePickerView.swift */; };
 		A100000033 /* LocationInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000033 /* LocationInputView.swift */; };
 		A100000034 /* TentedQuestionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000034 /* TentedQuestionView.swift */; };
-		A100000035 /* PhilosophyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000035 /* PhilosophyView.swift */; };
+		A100000061 /* ReferralSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000061 /* ReferralSourceView.swift */; };
+		A100000062 /* LongEngagementTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000062 /* LongEngagementTutorialView.swift */; };
 		A100000036 /* NotificationPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000036 /* NotificationPermissionView.swift */; };
 		A100000037 /* PreparednessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000037 /* PreparednessView.swift */; };
 		A100000038 /* RatingRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000038 /* RatingRequestView.swift */; };
@@ -97,6 +99,7 @@
 		B100000009 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		B100000010 /* TipService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipService.swift; sourceTree = "<group>"; };
 		B100000011 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
+		B100000060 /* RandomIllustrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomIllustrationService.swift; sourceTree = "<group>"; };
 		B100000012 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		B100000013 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		B100000014 /* SunsetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunsetService.swift; sourceTree = "<group>"; };
@@ -120,7 +123,8 @@
 		B100000032 /* DatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerView.swift; sourceTree = "<group>"; };
 		B100000033 /* LocationInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationInputView.swift; sourceTree = "<group>"; };
 		B100000034 /* TentedQuestionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TentedQuestionView.swift; sourceTree = "<group>"; };
-		B100000035 /* PhilosophyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhilosophyView.swift; sourceTree = "<group>"; };
+		B100000061 /* ReferralSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralSourceView.swift; sourceTree = "<group>"; };
+		B100000062 /* LongEngagementTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongEngagementTutorialView.swift; sourceTree = "<group>"; };
 		B100000036 /* NotificationPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionView.swift; sourceTree = "<group>"; };
 		B100000037 /* PreparednessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreparednessView.swift; sourceTree = "<group>"; };
 		B100000038 /* RatingRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestView.swift; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 				B100000009 /* AuthService.swift */,
 				B100000010 /* TipService.swift */,
 				B100000011 /* StreakService.swift */,
+				B100000060 /* RandomIllustrationService.swift */,
 				B100000012 /* NotificationService.swift */,
 				B100000013 /* LocationService.swift */,
 				B100000014 /* SunsetService.swift */,
@@ -303,7 +308,8 @@
 				B100000032 /* DatePickerView.swift */,
 				B100000033 /* LocationInputView.swift */,
 				B100000034 /* TentedQuestionView.swift */,
-				B100000035 /* PhilosophyView.swift */,
+				B100000061 /* ReferralSourceView.swift */,
+				B100000062 /* LongEngagementTutorialView.swift */,
 				B100000036 /* NotificationPermissionView.swift */,
 				B100000037 /* PreparednessView.swift */,
 				B100000038 /* RatingRequestView.swift */,
@@ -439,6 +445,7 @@
 				A100000009 /* AuthService.swift in Sources */,
 				A100000010 /* TipService.swift in Sources */,
 				A100000011 /* StreakService.swift in Sources */,
+				A100000060 /* RandomIllustrationService.swift in Sources */,
 				A100000012 /* NotificationService.swift in Sources */,
 				A100000013 /* LocationService.swift in Sources */,
 				A100000014 /* SunsetService.swift in Sources */,
@@ -462,7 +469,8 @@
 				A100000032 /* DatePickerView.swift in Sources */,
 				A100000033 /* LocationInputView.swift in Sources */,
 				A100000034 /* TentedQuestionView.swift in Sources */,
-				A100000035 /* PhilosophyView.swift in Sources */,
+				A100000061 /* ReferralSourceView.swift in Sources */,
+				A100000062 /* LongEngagementTutorialView.swift in Sources */,
 				A100000036 /* NotificationPermissionView.swift in Sources */,
 				A100000037 /* PreparednessView.swift in Sources */,
 				A100000038 /* RatingRequestView.swift in Sources */,
@@ -616,7 +624,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;
@@ -647,7 +655,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;

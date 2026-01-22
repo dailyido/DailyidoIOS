@@ -15,6 +15,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published var weddingLongitude: Double?
     @Published var isTentedWedding = false
     @Published var feelsPrepered = false
+    @Published var referralSource = ""
     @Published var isLoading = false
     @Published var sunsetTime: String?
     @Published var daysUntilWedding: Int = 0
@@ -28,7 +29,7 @@ final class OnboardingViewModel: ObservableObject {
 
     private static let couplePhotoKey = "couplePhotoPath"
 
-    let totalSteps = 14
+    let totalSteps = 15
 
     let loadingMessages = [
         "Creating custom countdown...",
@@ -127,8 +128,8 @@ final class OnboardingViewModel: ObservableObject {
         // Calculate days until wedding
         daysUntilWedding = Date().daysUntil(weddingDate)
 
-        // Minimum 6 seconds loading time for effect
-        try? await Task.sleep(nanoseconds: 6_000_000_000)
+        // Minimum 8 seconds loading time so users can read messages
+        try? await Task.sleep(nanoseconds: 8_000_000_000)
 
         isLoading = false
         nextStep()

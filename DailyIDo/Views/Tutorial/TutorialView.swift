@@ -4,123 +4,140 @@ struct TutorialView: View {
     @Binding var isPresented: Bool
     @State private var currentStep = 0
 
-    private let steps: [TutorialStep] = [
-        TutorialStep(
-            icon: "heart.fill",
-            title: "Welcome to Daily I Do!",
-            description: "Let's walk through how to use the app."
-        ),
-        TutorialStep(
-            icon: "hand.draw",
-            title: "Swipe for New Tips",
-            description: "Swipe left on the calendar to tear away the page and reveal your next daily tip."
-        ),
-        TutorialStep(
-            icon: "square.and.arrow.up",
-            title: "Share Your Journey",
-            description: "Tap the share button to post to Instagram Stories, text your fiancé, or share with your wedding party."
-        ),
-        TutorialStep(
-            icon: "checklist",
-            title: "Your Checklist",
-            description: "Find your complete wedding checklist in the To-Do tab, organized by timeframe so you know what to focus on."
-        ),
-        TutorialStep(
-            icon: "link",
-            title: "Helpful Resources",
-            description: "Some tips include links to curated resources and recommendations to help you along the way."
-        ),
-        TutorialStep(
-            icon: "bell",
-            title: "Set Reminders",
-            description: "Tap the bell icon to save a tip to your Apple Reminders so you won't forget important tasks."
-        ),
-        TutorialStep(
-            icon: "calendar.badge.clock",
-            title: "Catch Up Time",
-            description: "We're starting you a few days back so you can swipe through and catch up to today. Each day unlocks a new wedding tip!"
-        )
-    ]
+    // Check if user is > 440 days out for long engagement message
+    private var isLongEngagement: Bool {
+        guard let user = AuthService.shared.currentUser,
+              let weddingDate = user.weddingDate else {
+            return false
+        }
+        return Date().daysUntil(weddingDate) > 440
+    }
+
+    private var steps: [TutorialStep] {
+        var baseSteps = [
+            TutorialStep(
+                icon: "heart.fill",
+                title: "Welcome to Daily I Do!",
+                description: "Let's walk through how to use the app."
+            ),
+            TutorialStep(
+                icon: "hand.draw",
+                title: "Swipe for New Tips",
+                description: "Swipe left on the calendar to tear away the page and reveal your next daily tip."
+            ),
+            TutorialStep(
+                icon: "square.and.arrow.up",
+                title: "Share Your Journey",
+                description: "Tap the share button to post to Instagram Stories, text your fiancé, or share with your wedding party."
+            ),
+            TutorialStep(
+                icon: "checklist",
+                title: "Your Checklist",
+                description: "Find your complete wedding checklist in the To-Do tab, organized by timeframe so you know what to focus on."
+            ),
+            TutorialStep(
+                icon: "link",
+                title: "Helpful Resources",
+                description: "Some tips include links to curated resources and recommendations to help you along the way."
+            ),
+            TutorialStep(
+                icon: "bell",
+                title: "Set Reminders",
+                description: "Tap the bell icon to save a tip to your Apple Reminders so you won't forget important tasks."
+            ),
+            TutorialStep(
+                icon: "calendar.badge.clock",
+                title: "Catch Up Time",
+                description: "We're starting you a few days back so you can swipe through and catch up to today. Each day unlocks a new wedding tip!"
+            )
+        ]
+
+        // Add long engagement step for users > 440 days out
+        if isLongEngagement {
+            baseSteps.append(TutorialStep(
+                icon: "sparkles",
+                title: "You're Ahead of the Game!",
+                description: "You're over 440 days out—perfect for big-picture planning. More detailed tips will unlock as you get closer (around 15 months out). Focus on the fun stuff first!"
+            ))
+        }
+
+        return baseSteps
+    }
 
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
     private let accentColor = Color(hex: Constants.Colors.accent)
     private let secondaryText = Color(hex: Constants.Colors.secondaryText)
 
     var body: some View {
-        ZStack {
-            // Dimmed background
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    // Don't dismiss on background tap
-                }
-
-            // Tutorial card
-            VStack(spacing: 0) {
-                // Content
-                TabView(selection: $currentStep) {
-                    ForEach(0..<steps.count, id: \.self) { index in
-                        tutorialStepView(steps[index])
-                            .tag(index)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 320)
-
-                // Page indicator
-                HStack(spacing: 8) {
-                    ForEach(0..<steps.count, id: \.self) { index in
-                        Circle()
-                            .fill(index == currentStep ? accentColor : accentColor.opacity(0.3))
-                            .frame(width: 8, height: 8)
-                            .animation(.easeInOut(duration: 0.2), value: currentStep)
-                    }
-                }
-                .padding(.top, 16)
-
-                // Button
-                Button(action: {
-                    HapticManager.shared.buttonTap()
-                    if currentStep < steps.count - 1 {
-                        withAnimation {
-                            currentStep += 1
+        Color.black.opacity(0.4)
+            .ignoresSafeArea()
+            .overlay {
+                // Tutorial card - centered via overlay
+                VStack(spacing: 0) {
+                    // Content
+                    TabView(selection: $currentStep) {
+                        ForEach(0..<steps.count, id: \.self) { index in
+                            tutorialStepView(steps[index])
+                                .tag(index)
                         }
-                    } else {
-                        dismissTutorial()
                     }
-                }) {
-                    Text(currentStep < steps.count - 1 ? "Next" : "Let's Do This!")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(primaryColor)
-                        )
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 24)
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .frame(height: 320)
 
-                // Skip button
-                if currentStep < steps.count - 1 {
-                    Button(action: {
-                        dismissTutorial()
-                    }) {
-                        Text("Skip")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(secondaryText)
+                    // Page indicator
+                    HStack(spacing: 8) {
+                        ForEach(0..<steps.count, id: \.self) { index in
+                            Circle()
+                                .fill(index == currentStep ? accentColor : accentColor.opacity(0.3))
+                                .frame(width: 8, height: 8)
+                                .animation(.easeInOut(duration: 0.2), value: currentStep)
+                        }
                     }
-                    .padding(.top, 12)
+                    .padding(.top, 16)
+
+                    // Button
+                    Button(action: {
+                        HapticManager.shared.buttonTap()
+                        if currentStep < steps.count - 1 {
+                            withAnimation {
+                                currentStep += 1
+                            }
+                        } else {
+                            dismissTutorial()
+                        }
+                    }) {
+                        Text(currentStep < steps.count - 1 ? "Next" : "Let's Do This!")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(primaryColor)
+                            )
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 24)
+
+                    // Skip button
+                    if currentStep < steps.count - 1 {
+                        Button(action: {
+                            dismissTutorial()
+                        }) {
+                            Text("Skip")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(secondaryText)
+                        }
+                        .padding(.top, 12)
+                    }
                 }
+                .padding(.vertical, 32)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white)
+                )
+                .padding(.horizontal, 24)
             }
-            .padding(.vertical, 32)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white)
-            )
-            .padding(.horizontal, 24)
-        }
     }
 
     private func tutorialStepView(_ step: TutorialStep) -> some View {

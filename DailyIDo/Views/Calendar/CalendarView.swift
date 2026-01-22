@@ -5,20 +5,20 @@ struct CalendarView: View {
 
     @StateObject private var viewModel = CalendarViewModel()
     @StateObject private var streakService = StreakService.shared
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showShareOptions = false
     @State private var showInstagramAlert = false
     @State private var showFacebookAlert = false
     @State private var isSharing = false
     @State private var shareImage: UIImage?
-    @State private var showTutorial = false
+    @State private var showReminderOptions = false
+    @State private var showCustomTimePicker = false
+    @State private var customReminderDate = Date()
     @State private var showReminderSuccess = false
     @State private var showReminderError = false
     @State private var reminderErrorMessage = ""
+    @State private var reminderSuccessMessage = ""
 
-    // Computed at check time, not at view init
-    private var shouldShowTutorial: Bool {
-        !UserDefaults.standard.bool(forKey: "hasSeenTutorial")
-    }
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
 
     var body: some View {
@@ -35,18 +35,21 @@ struct CalendarView: View {
             )
             .ignoresSafeArea()
 
-            if viewModel.isLoading {
-                LoadingSpinner()
+            if viewModel.isLoading || isTutorialShowing {
+                // Show nothing behind the tutorial - just the gradient background
+                if !isTutorialShowing {
+                    LoadingSpinner()
+                }
             } else {
                 VStack(spacing: 0) {
-                    // Action buttons in top right
+                    // Action buttons
                     HStack(alignment: .bottom, spacing: 4) {
                         Spacer()
 
                         // Reminder button
                         Button(action: {
                             HapticManager.shared.buttonTap()
-                            addToReminders()
+                            showReminderOptions = true
                         }) {
                             Image(systemName: "bell")
                                 .font(.system(size: 22))
@@ -66,7 +69,7 @@ struct CalendarView: View {
                         .frame(width: 44, height: 44, alignment: .bottom)
                         .disabled(isSharing)
                     }
-                    .padding(.trailing, 12)
+                    .padding(.horizontal, 12)
                     .padding(.top, 8)
                     .padding(.bottom, 4)
 
@@ -126,14 +129,15 @@ struct CalendarView: View {
                                 .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.8), value: viewModel.dragOffset)
                                 .animation(.easeOut(duration: 0.2), value: viewModel.tearOpacity)
                             }
-                            .highPriorityGesture(
-                                DragGesture(minimumDistance: 10)
+                            .simultaneousGesture(
+                                DragGesture(minimumDistance: 20)
                                     .onChanged { value in
                                         // Only handle horizontal drags (let vertical pass to ScrollView)
                                         let horizontalAmount = abs(value.translation.width)
                                         let verticalAmount = abs(value.translation.height)
 
-                                        if horizontalAmount > verticalAmount {
+                                        // Require significantly more horizontal than vertical movement
+                                        if horizontalAmount > verticalAmount * 1.5 {
                                             // Reset if previous animation is still running
                                             if viewModel.isTearing {
                                                 viewModel.forceResetForNewGesture()
@@ -175,27 +179,14 @@ struct CalendarView: View {
                     streakService.dismissMilestone()
                 }
             }
-
-            // Tutorial overlay for first-time users
-            if showTutorial {
-                TutorialView(isPresented: $showTutorial)
-                    .transition(.opacity)
-            }
         }
         .task {
             await viewModel.loadData()
-
-            // Delay tutorial to allow paywall to fully dismiss first
-            if shouldShowTutorial {
-                try? await Task.sleep(nanoseconds: 800_000_000) // 0.8 second delay
-                withAnimation(.easeIn(duration: 0.3)) {
-                    showTutorial = true
-                    isTutorialShowing = true
-                }
-            }
         }
-        .onChange(of: showTutorial) { newValue in
-            isTutorialShowing = newValue
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                viewModel.refreshIfNeeded()
+            }
         }
         .sheet(isPresented: $showShareOptions) {
             ShareOptionsSheet(
@@ -230,6 +221,50 @@ struct CalendarView: View {
             .presentationDetents([.height(340)])
             .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $showReminderOptions) {
+            ReminderOptionsSheet(
+                onTomorrowMorning: {
+                    showReminderOptions = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        addToReminders(at: tomorrowAt(hour: 9, minute: 0))
+                    }
+                },
+                onTomorrowEvening: {
+                    showReminderOptions = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        addToReminders(at: tomorrowAt(hour: 19, minute: 0))
+                    }
+                },
+                onCustomTime: {
+                    showReminderOptions = false
+                    customReminderDate = tomorrowAt(hour: 9, minute: 0)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showCustomTimePicker = true
+                    }
+                },
+                onCancel: {
+                    showReminderOptions = false
+                }
+            )
+            .presentationDetents([.height(320)])
+            .presentationDragIndicator(.hidden)
+        }
+        .sheet(isPresented: $showCustomTimePicker) {
+            CustomTimePickerSheet(
+                selectedDate: $customReminderDate,
+                onConfirm: {
+                    showCustomTimePicker = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        addToReminders(at: customReminderDate)
+                    }
+                },
+                onCancel: {
+                    showCustomTimePicker = false
+                }
+            )
+            .presentationDetents([.height(520)])
+            .presentationDragIndicator(.hidden)
+        }
         .alert("Instagram Not Installed", isPresented: $showInstagramAlert) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -243,7 +278,7 @@ struct CalendarView: View {
         .alert("Reminder Added", isPresented: $showReminderSuccess) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("This tip has been added to your Reminders app.")
+            Text(reminderSuccessMessage)
         }
         .alert("Couldn't Add Reminder", isPresented: $showReminderError) {
             Button("OK", role: .cancel) {}
@@ -262,15 +297,32 @@ struct CalendarView: View {
 
     // MARK: - Sharing Functions
 
-    private func generateShareImage() -> UIImage? {
+    private func generateShareImage(with illustrationImage: UIImage? = nil) -> UIImage? {
         let sharingService = InstagramSharingService.shared
         let shareableCard = ShareableCalendarCard(
             daysUntilWedding: viewModel.daysUntilWedding,
             tipTitle: viewModel.currentTip?.title ?? "Wedding Tip",
-            tipText: viewModel.currentTip?.tipText ?? ""
+            tipText: viewModel.currentTip?.tipText ?? "",
+            illustrationImage: illustrationImage
         )
         let cardSize = CGSize(width: 1080, height: 1920)
         return sharingService.renderViewToImage(shareableCard, size: cardSize)
+    }
+
+    private func loadIllustrationImage() async -> UIImage? {
+        guard let tip = viewModel.currentTip,
+              let urlString = RandomIllustrationService.shared.getIllustrationUrl(for: tip),
+              let url = URL(string: urlString) else {
+            return nil
+        }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            return UIImage(data: data)
+        } catch {
+            print("Failed to load illustration for sharing: \(error)")
+            return nil
+        }
     }
 
     private func shareToInstagram() {
@@ -286,7 +338,9 @@ struct CalendarView: View {
         isSharing = true
 
         Task { @MainActor in
-            if let image = generateShareImage() {
+            // Load illustration first
+            let illustrationImage = await loadIllustrationImage()
+            if let image = generateShareImage(with: illustrationImage) {
                 sharingService.shareToInstagramStories(image: image) { success in
                     DispatchQueue.main.async {
                         isSharing = false
@@ -314,7 +368,9 @@ struct CalendarView: View {
         isSharing = true
 
         Task { @MainActor in
-            if let image = generateShareImage() {
+            // Load illustration first
+            let illustrationImage = await loadIllustrationImage()
+            if let image = generateShareImage(with: illustrationImage) {
                 sharingService.shareToFacebookStories(image: image) { success in
                     DispatchQueue.main.async {
                         isSharing = false
@@ -334,7 +390,9 @@ struct CalendarView: View {
         isSharing = true
 
         Task { @MainActor in
-            if let image = generateShareImage() {
+            // Load illustration first
+            let illustrationImage = await loadIllustrationImage()
+            if let image = generateShareImage(with: illustrationImage) {
                 shareImage = image
             }
             isSharing = false
@@ -346,7 +404,9 @@ struct CalendarView: View {
         isSharing = true
 
         Task { @MainActor in
-            if let image = generateShareImage() {
+            // Load illustration first
+            let illustrationImage = await loadIllustrationImage()
+            if let image = generateShareImage(with: illustrationImage) {
                 shareImage = image
             }
             isSharing = false
@@ -355,7 +415,22 @@ struct CalendarView: View {
 
     // MARK: - Reminders
 
-    private func addToReminders() {
+    private func tomorrowAt(hour: Int, minute: Int) -> Date {
+        let calendar = Calendar.current
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        var components = calendar.dateComponents([.year, .month, .day], from: tomorrow)
+        components.hour = hour
+        components.minute = minute
+        return calendar.date(from: components) ?? tomorrow
+    }
+
+    private func formatReminderTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE 'at' h:mm a"
+        return formatter.string(from: date)
+    }
+
+    private func addToReminders(at date: Date) {
         guard let tip = viewModel.currentTip else { return }
 
         Task {
@@ -364,13 +439,15 @@ struct CalendarView: View {
 
             let result = await RemindersService.shared.createReminder(
                 title: title,
-                notes: notes
+                notes: notes,
+                dueDate: date
             )
 
             await MainActor.run {
                 switch result {
                 case .success:
                     HapticManager.shared.success()
+                    reminderSuccessMessage = "Reminder set for \(formatReminderTime(date))"
                     showReminderSuccess = true
                 case .failure(let error):
                     reminderErrorMessage = error.localizedDescription
@@ -472,27 +549,14 @@ struct CalendarPaperContent: View {
                         .foregroundColor(Color(hex: Constants.Colors.calendarTextTertiary))
                         .padding(.top, 8)
 
-                    // Tip illustration from database (only if one exists)
-                    if let tip = tip, tip.hasIllustration, let illustrationUrl = tip.fullIllustrationUrl {
-                        CachedAsyncImage(url: URL(string: illustrationUrl)) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                        } placeholder: {
-                            Color.clear
-                        }
-                        .frame(width: 96, height: 96)
-                        .id(illustrationUrl)
-                        .padding(.top, 24)
+                    // Tip illustration (own or random fallback)
+                    if let tip = tip {
+                        TipIllustrationView(tip: tip, size: 115)
+                            .padding(.top, 16)
                     }
 
-                    // Divider line
-                    Color.clear
-                        .frame(height: 1)
-                        .padding(.top, 12)
-
                     // Today's Tip section
-                    VStack(spacing: 12) {
+                    VStack(spacing: 10) {
                         Text("TODAY'S TIP")
                             .font(.system(size: 11, weight: .regular))
                             .tracking(2.26)
@@ -500,19 +564,21 @@ struct CalendarPaperContent: View {
 
                         if let tip = tip {
                             // Tip title from database
-                            Text(tip.title)
+                            Text(tip.title.replacingOccurrences(of: "\\n", with: "\n"))
                                 .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(Color(hex: Constants.Colors.calendarTextPrimary))
                                 .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .padding(.horizontal, 24)
 
-                            // Tip text from database
-                            Text(tip.tipText)
+                            // Tip text from database (supports \n for line breaks)
+                            Text(tip.tipText.replacingOccurrences(of: "\\n", with: "\n"))
                                 .font(.system(size: 16, weight: .regular))
                                 .tracking(-0.44)
                                 .lineSpacing(6)
                                 .foregroundColor(Color(hex: Constants.Colors.calendarTextSecondary))
                                 .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .padding(.horizontal, 24)
                         } else {
                             Text("Loading tip...")
@@ -520,8 +586,8 @@ struct CalendarPaperContent: View {
                                 .foregroundColor(Color(hex: Constants.Colors.calendarTextSecondary))
                         }
                     }
-                    .padding(.top, 12)
-                    .padding(.bottom, 24)
+                    .padding(.top, 6)
+                    .padding(.bottom, 20)
                 }
             }
 
@@ -882,6 +948,209 @@ struct ShareOptionButton: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
         }
+    }
+}
+
+// MARK: - Reminder Options Sheet
+
+struct ReminderOptionsSheet: View {
+    let onTomorrowMorning: () -> Void
+    let onTomorrowEvening: () -> Void
+    let onCustomTime: () -> Void
+    let onCancel: () -> Void
+
+    private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
+    private let secondaryText = Color(hex: Constants.Colors.secondaryText)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag indicator
+            RoundedRectangle(cornerRadius: 2.5)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+
+            // Title
+            Text("Set Reminder")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(primaryColor)
+                .padding(.top, 16)
+                .padding(.bottom, 20)
+
+            // Options
+            VStack(spacing: 0) {
+                ReminderOptionButton(
+                    icon: "sun.rise.fill",
+                    title: "Tomorrow morning",
+                    subtitle: "9:00 AM",
+                    color: primaryColor,
+                    action: onTomorrowMorning
+                )
+
+                Divider()
+                    .padding(.horizontal, 20)
+
+                ReminderOptionButton(
+                    icon: "moon.fill",
+                    title: "Tomorrow evening",
+                    subtitle: "7:00 PM",
+                    color: primaryColor,
+                    action: onTomorrowEvening
+                )
+
+                Divider()
+                    .padding(.horizontal, 20)
+
+                ReminderOptionButton(
+                    icon: "clock.fill",
+                    title: "Custom time...",
+                    subtitle: nil,
+                    color: primaryColor,
+                    action: onCustomTime
+                )
+            }
+
+            Spacer()
+
+            // Cancel button
+            Button(action: onCancel) {
+                Text("Cancel")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(secondaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+        }
+        .background(Color.white)
+    }
+}
+
+struct ReminderOptionButton: View {
+    let icon: String
+    let title: String
+    let subtitle: String?
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            HapticManager.shared.buttonTap()
+            action()
+        }) {
+            HStack(spacing: 16) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                    .foregroundColor(color)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 17))
+                        .foregroundColor(color)
+
+                    if let subtitle = subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 13))
+                            .foregroundColor(color.opacity(0.6))
+                    }
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(color.opacity(0.4))
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+        }
+    }
+}
+
+// MARK: - Custom Time Picker Sheet
+
+struct CustomTimePickerSheet: View {
+    @Binding var selectedDate: Date
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
+    private let accentColor = Color(hex: Constants.Colors.accent)
+    private let secondaryText = Color(hex: Constants.Colors.secondaryText)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag indicator
+            RoundedRectangle(cornerRadius: 2.5)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+
+            // Date Picker - graphical for date selection
+            DatePicker(
+                "Reminder Date",
+                selection: $selectedDate,
+                in: Date()...,
+                displayedComponents: [.date]
+            )
+            .datePickerStyle(.graphical)
+            .labelsHidden()
+            .tint(accentColor)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+
+            // Time row - always visible
+            HStack {
+                Text("Time")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(primaryColor)
+
+                Spacer()
+
+                DatePicker(
+                    "",
+                    selection: $selectedDate,
+                    displayedComponents: [.hourAndMinute]
+                )
+                .labelsHidden()
+                .tint(accentColor)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color.white)
+
+            // Buttons - fixed at bottom
+            HStack(spacing: 12) {
+                Button(action: onCancel) {
+                    Text("Cancel")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(secondaryText)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                }
+
+                Button(action: onConfirm) {
+                    Text("Set Reminder")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(accentColor)
+                        )
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+        }
+        .background(Color.white)
     }
 }
 

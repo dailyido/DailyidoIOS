@@ -58,12 +58,19 @@ struct LaunchScreenView: View {
 }
 
 struct MainTabView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab = 0
     @StateObject private var streakService = StreakService.shared
     @State private var showRemotePopup = false
     @State private var currentPopup: RemotePopup?
     @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
-    @State private var isTutorialShowing = false
+    @State private var showTutorial = false
+    @State private var showInstagramPopup = false
+
+    // Check if tutorial should show
+    private var shouldShowTutorial: Bool {
+        !UserDefaults.standard.bool(forKey: "hasSeenTutorial")
+    }
 
     var body: some View {
         ZStack {
@@ -72,27 +79,21 @@ struct MainTabView: View {
                 Group {
                     switch selectedTab {
                     case 0:
-                        CalendarView(isTutorialShowing: $isTutorialShowing)
+                        CalendarView(isTutorialShowing: $showTutorial)
                     case 1:
                         ChecklistView()
                     case 2:
-                        SettingsView()
+                        SettingsView(onDone: {
+                            selectedTab = 0
+                        })
                     default:
-                        CalendarView(isTutorialShowing: $isTutorialShowing)
+                        CalendarView(isTutorialShowing: $showTutorial)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 // Custom Tab Bar
-                ZStack {
-                    CustomTabBar(selectedTab: $selectedTab, couplePhoto: couplePhoto)
-
-                    // Dim overlay when tutorial is showing
-                    if isTutorialShowing {
-                        Color.black.opacity(0.4)
-                            .allowsHitTesting(false)
-                    }
-                }
+                CustomTabBar(selectedTab: $selectedTab, couplePhoto: couplePhoto)
             }
             .ignoresSafeArea(.keyboard)
             .onChange(of: selectedTab) { newTab in
@@ -107,6 +108,11 @@ struct MainTabView: View {
                 CelebrationPopup(milestone: milestone) {
                     streakService.dismissMilestone()
                 }
+            }
+
+            // Tutorial overlay - FULL SCREEN covering everything including tab bar
+            if showTutorial {
+                TutorialView(isPresented: $showTutorial)
             }
 
             // Remote popup overlay
@@ -124,21 +130,83 @@ struct MainTabView: View {
                     }
                 )
             }
+
+            // Instagram follow popup (5 days after first use)
+            if showInstagramPopup {
+                RemotePopupView(
+                    popup: RemotePopup(
+                        id: UUID(),
+                        popupType: "custom",
+                        triggerDate: nil,
+                        triggerDaysOut: nil,
+                        title: "Join Our Community!",
+                        message: "Follow us on Instagram for wedding inspiration, planning tips, and behind-the-scenes moments from real weddings!",
+                        imageUrl: nil,
+                        illustrationUrl: nil,
+                        ctaText: "Follow @thedailyido",
+                        ctaAction: Constants.SocialLinks.instagramURL,
+                        isActive: true
+                    ),
+                    onDismiss: {
+                        showInstagramPopup = false
+                        UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKeys.hasShownInstagramFollowPopup)
+                    },
+                    onCTATap: {
+                        if let url = URL(string: Constants.SocialLinks.instagramURL) {
+                            UIApplication.shared.open(url)
+                        }
+                        UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKeys.hasShownInstagramFollowPopup)
+                    }
+                )
+            }
         }
         .task {
+            // Show tutorial immediately for first-time users
+            if shouldShowTutorial {
+                showTutorial = true
+            }
+
+            trackFirstAppOpen()
             await checkForRemotePopups()
+            checkForInstagramFollowPopup()
+        }
+        // TEMPORARY: Check for popups every time app becomes active (for testing)
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                Task {
+                    await checkForRemotePopups()
+                }
+            }
         }
     }
 
     private func checkForRemotePopups() async {
+        // Don't show popups until user has completed the tutorial
+        guard UserDefaults.standard.bool(forKey: "hasSeenTutorial") else {
+            print("DEBUG: Tutorial not yet completed, skipping remote popups")
+            return
+        }
+
         guard let user = AuthService.shared.currentUser,
-              let weddingDate = user.weddingDate else { return }
+              let weddingDate = user.weddingDate else {
+            print("DEBUG: No user or wedding date")
+            return
+        }
 
         let daysOut = Date().daysUntil(weddingDate)
         let today = Date()
 
         do {
             let popups = try await SupabaseService.shared.fetchActivePopups()
+            print("DEBUG: Fetched \(popups.count) popups")
+
+            for popup in popups {
+                print("DEBUG: Popup - type: \(popup.popupType), triggerDate: \(String(describing: popup.triggerDate)), title: \(popup.title)")
+                if let triggerDate = popup.triggerDate {
+                    print("DEBUG: Comparing triggerDate \(triggerDate) with today \(today)")
+                    print("DEBUG: Same day? \(Calendar.current.isDate(triggerDate, inSameDayAs: today))")
+                }
+            }
 
             // Check for holiday popup (date-based)
             if let holidayPopup = popups.first(where: {
@@ -146,6 +214,7 @@ struct MainTabView: View {
                 $0.triggerDate != nil &&
                 Calendar.current.isDate($0.triggerDate!, inSameDayAs: today)
             }) {
+                print("DEBUG: Found matching holiday popup!")
                 await MainActor.run {
                     currentPopup = holidayPopup
                     showRemotePopup = true
@@ -158,13 +227,55 @@ struct MainTabView: View {
                 $0.popupType == PopupType.daysOut.rawValue &&
                 $0.triggerDaysOut == daysOut
             }) {
+                print("DEBUG: Found matching days_out popup!")
                 await MainActor.run {
                     currentPopup = daysOutPopup
                     showRemotePopup = true
                 }
             }
         } catch {
-            print("Error fetching remote popups: \(error)")
+            print("DEBUG Error fetching remote popups: \(error)")
+        }
+    }
+
+    /// Track the first time the user opens the app
+    private func trackFirstAppOpen() {
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: Constants.UserDefaultsKeys.firstAppOpenDate) == nil {
+            defaults.set(Date(), forKey: Constants.UserDefaultsKeys.firstAppOpenDate)
+            print("DEBUG: First app open tracked at \(Date())")
+        }
+    }
+
+    /// Check if we should show the Instagram follow popup (5 days after first use)
+    private func checkForInstagramFollowPopup() {
+        let defaults = UserDefaults.standard
+
+        // Don't show until tutorial is completed
+        guard defaults.bool(forKey: "hasSeenTutorial") else {
+            return
+        }
+
+        // Don't show if already shown
+        if defaults.bool(forKey: Constants.UserDefaultsKeys.hasShownInstagramFollowPopup) {
+            return
+        }
+
+        // Check if first open date exists and 5 days have passed
+        guard let firstOpenDate = defaults.object(forKey: Constants.UserDefaultsKeys.firstAppOpenDate) as? Date else {
+            return
+        }
+
+        let daysSinceFirstOpen = Calendar.current.dateComponents([.day], from: firstOpenDate, to: Date()).day ?? 0
+
+        if daysSinceFirstOpen >= 5 {
+            // Small delay to not conflict with other popups
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // Only show if no other popup is showing
+                if !showRemotePopup && streakService.showingMilestone == nil {
+                    showInstagramPopup = true
+                }
+            }
         }
     }
 }

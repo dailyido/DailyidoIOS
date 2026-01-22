@@ -280,7 +280,14 @@ struct LoadingView: View {
     }
 
     private func startMessageRotation() {
-        timer = Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [self] _ in
+            // Stop rotating once we reach the last message
+            let isLastMessage = currentMessageIndex >= viewModel.loadingMessages.count - 1
+            if isLastMessage {
+                timer?.invalidate()
+                return
+            }
+
             // Fade out
             withAnimation(.easeOut(duration: 0.2)) {
                 messageOpacity = 0
@@ -288,7 +295,7 @@ struct LoadingView: View {
 
             // Change message and fade in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                currentMessageIndex = (currentMessageIndex + 1) % viewModel.loadingMessages.count
+                currentMessageIndex = currentMessageIndex + 1
                 withAnimation(.easeIn(duration: 0.3)) {
                     messageOpacity = 1
                 }

@@ -3,12 +3,19 @@ import PhotosUI
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
-    @Environment(\.dismiss) private var dismiss
     @State private var showMeetThePlanners = false
     @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var isDatePickerExpanded = false
+    var onDone: (() -> Void)?
 
     private let accentColor = Color(hex: Constants.Colors.accent)
+
+    private var formattedWeddingDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        return formatter.string(from: viewModel.weddingDate)
+    }
 
     var body: some View {
         NavigationStack {
@@ -73,30 +80,6 @@ struct SettingsView: View {
                             }
                         }
 
-                        // Profile Section
-                        SettingsSection(title: "Your Details") {
-                            VStack(spacing: 16) {
-                                LabeledInputField(
-                                    label: "Your Name",
-                                    placeholder: "Enter your name",
-                                    text: $viewModel.name
-                                )
-
-                                LabeledInputField(
-                                    label: "Partner's Name",
-                                    placeholder: "Enter partner's name",
-                                    text: $viewModel.partnerName
-                                )
-
-                                LabeledInputField(
-                                    label: "Email",
-                                    placeholder: "email@example.com",
-                                    text: $viewModel.email,
-                                    keyboardType: .emailAddress
-                                )
-                            }
-                        }
-
                         // Wedding Details Section
                         SettingsSection(title: "Wedding Details") {
                             VStack(spacing: 16) {
@@ -106,14 +89,46 @@ struct SettingsView: View {
                                         .font(.system(size: 14, weight: .medium))
                                         .foregroundColor(Color(hex: Constants.Colors.secondaryText))
 
-                                    DatePicker(
-                                        "",
-                                        selection: $viewModel.weddingDate,
-                                        displayedComponents: .date
-                                    )
-                                    .datePickerStyle(.compact)
-                                    .tint(Color(hex: Constants.Colors.accent))
-                                    .labelsHidden()
+                                    // Tappable date display
+                                    Button(action: {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            isDatePickerExpanded.toggle()
+                                        }
+                                    }) {
+                                        HStack {
+                                            Text(formattedWeddingDate)
+                                                .font(.system(size: 16))
+                                                .foregroundColor(Color(hex: Constants.Colors.primaryText))
+
+                                            Spacer()
+
+                                            Image(systemName: isDatePickerExpanded ? "chevron.up" : "chevron.down")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                                        }
+                                        .padding(12)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(Color(hex: Constants.Colors.background))
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color(hex: Constants.Colors.calendarBorder), lineWidth: 1)
+                                        )
+                                    }
+
+                                    // Expandable calendar picker
+                                    if isDatePickerExpanded {
+                                        DatePicker(
+                                            "",
+                                            selection: $viewModel.weddingDate,
+                                            displayedComponents: .date
+                                        )
+                                        .datePickerStyle(.graphical)
+                                        .tint(accentColor)
+                                        .labelsHidden()
+                                        .transition(.opacity.combined(with: .move(edge: .top)))
+                                    }
                                 }
 
                                 // Wedding Location
@@ -149,6 +164,30 @@ struct SettingsView: View {
                                         .labelsHidden()
                                 }
                                 .padding(.vertical, 8)
+                            }
+                        }
+
+                        // Profile Section
+                        SettingsSection(title: "Your Details") {
+                            VStack(spacing: 16) {
+                                LabeledInputField(
+                                    label: "Your Name",
+                                    placeholder: "Enter your name",
+                                    text: $viewModel.name
+                                )
+
+                                LabeledInputField(
+                                    label: "Partner's Name",
+                                    placeholder: "Enter partner's name",
+                                    text: $viewModel.partnerName
+                                )
+
+                                LabeledInputField(
+                                    label: "Email",
+                                    placeholder: "email@example.com",
+                                    text: $viewModel.email,
+                                    keyboardType: .emailAddress
+                                )
                             }
                         }
 
@@ -206,20 +245,6 @@ struct SettingsView: View {
                                         await viewModel.restorePurchases()
                                     }
                                 }
-
-                                Divider()
-                                    .padding(.leading, 44)
-
-                                SettingsActionRow(
-                                    icon: "rectangle.portrait.and.arrow.right",
-                                    title: "Sign Out",
-                                    isDestructive: true
-                                ) {
-                                    Task {
-                                        await viewModel.signOut()
-                                        dismiss()
-                                    }
-                                }
                             }
                         }
 
@@ -233,7 +258,7 @@ struct SettingsView: View {
                                 ) {
                                     Task {
                                         await viewModel.restartOnboarding()
-                                        dismiss()
+                                        // Auth state change will redirect to onboarding
                                     }
                                 }
                             }
@@ -260,7 +285,8 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
-                        dismiss()
+                        HapticManager.shared.buttonTap()
+                        onDone?()
                     }
                     .foregroundColor(Color(hex: Constants.Colors.accent))
                 }

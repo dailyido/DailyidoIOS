@@ -34,6 +34,7 @@ struct TentedQuestionView: View {
                         .font(.system(size: 17))
                         .foregroundColor(Color(hex: Constants.Colors.secondaryText))
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 32)
                         .padding(.top, 12)
 

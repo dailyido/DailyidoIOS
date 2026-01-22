@@ -10,39 +10,36 @@ struct OnboardingContainerView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header with back button and progress
-                if viewModel.currentStep > 0 && viewModel.currentStep < 12 {
-                    HStack {
-                        // Back button (hidden on first screen)
-                        if viewModel.currentStep > 1 {
-                            Button(action: {
-                                HapticManager.shared.buttonTap()
-                                viewModel.previousStep()
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 20, weight: .medium))
-                                    .foregroundColor(Color(hex: Constants.Colors.primaryText))
-                                    .frame(width: 44, height: 44)
-                            }
-                        } else {
-                            Spacer()
-                                .frame(width: 44)
-                        }
-
-                        Spacer()
-
-                        ProgressBar(progress: Double(viewModel.currentStep) / Double(viewModel.totalSteps - 3))
-                            .frame(maxWidth: 200)
-
-                        Spacer()
-
-                        // Placeholder for symmetry
-                        Spacer()
-                            .frame(width: 44)
+                // Header with back button and progress - always rendered for consistent layout
+                HStack {
+                    // Back button (visible only when can go back)
+                    Button(action: {
+                        HapticManager.shared.buttonTap()
+                        viewModel.previousStep()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(Color(hex: Constants.Colors.primaryText))
+                            .frame(width: 44, height: 44)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    .opacity(viewModel.currentStep > 1 && viewModel.currentStep < 12 ? 1 : 0)
+                    .disabled(viewModel.currentStep <= 1 || viewModel.currentStep >= 12)
+
+                    Spacer()
+
+                    ProgressBar(progress: Double(viewModel.currentStep) / Double(viewModel.totalSteps - 3))
+                        .frame(maxWidth: 200)
+                        .opacity(viewModel.currentStep > 0 && viewModel.currentStep < 12 ? 1 : 0)
+
+                    Spacer()
+
+                    // Placeholder for symmetry
+                    Spacer()
+                        .frame(width: 44)
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .frame(height: 52) // Fixed height for consistent layout
 
                 // Content
                 TabView(selection: $viewModel.currentStep) {
@@ -70,7 +67,7 @@ struct OnboardingContainerView: View {
                     TentedQuestionView(viewModel: viewModel)
                         .tag(7)
 
-                    PhilosophyView(viewModel: viewModel)
+                    ReferralSourceView(viewModel: viewModel)
                         .tag(8)
 
                     NotificationPermissionView(viewModel: viewModel)
@@ -87,6 +84,9 @@ struct OnboardingContainerView: View {
 
                     PlanRevealView(viewModel: viewModel, isOnboardingComplete: $isOnboardingComplete)
                         .tag(13)
+
+                    LongEngagementTutorialView(viewModel: viewModel, isOnboardingComplete: $isOnboardingComplete)
+                        .tag(14)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)

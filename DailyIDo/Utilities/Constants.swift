@@ -35,6 +35,14 @@ enum Constants {
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
         static let currentUserId = "currentUserId"
         static let scheduledNotificationIds = "scheduledNotificationIds"
+        static let firstAppOpenDate = "firstAppOpenDate"
+        static let hasShownInstagramFollowPopup = "hasShownInstagramFollowPopup"
+    }
+
+    // Social Links
+    enum SocialLinks {
+        static let instagramHandle = "thedailyido"
+        static let instagramURL = "https://instagram.com/thedailyido"
     }
 
     // Notification Identifiers
@@ -68,7 +76,7 @@ enum Constants {
         static let goldDark = "#BB4D00"
 
         // Tab bar colors
-        static let tabActive = "#FF2056"
+        static let tabActive = "#240115"
         static let tabInactive = "#99A1AF"
     }
 

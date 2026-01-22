@@ -6,6 +6,7 @@ struct Tip: Codable, Identifiable, Equatable {
     let tipText: String
     let hasIllustration: Bool
     let illustrationUrl: String?
+    let category: String?  // Informational only, no filtering
     let monthCategory: String?
     let specificDay: Int?
     let priority: Int
@@ -23,6 +24,7 @@ struct Tip: Codable, Identifiable, Equatable {
         case tipText = "tip_text"
         case hasIllustration = "has_illustration"
         case illustrationUrl = "illustration_url"
+        case category
         case monthCategory = "month_category"
         case specificDay = "specific_day"
         case priority
@@ -38,13 +40,16 @@ struct Tip: Codable, Identifiable, Equatable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
-        title = try container.decode(String.self, forKey: .title)
-        tipText = try container.decode(String.self, forKey: .tipText)
+        // Title and tipText can be NULL for fun_tip placeholder rows - use empty string default
+        title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+        tipText = try container.decodeIfPresent(String.self, forKey: .tipText) ?? ""
         hasIllustration = try container.decode(Bool.self, forKey: .hasIllustration)
         illustrationUrl = try container.decodeIfPresent(String.self, forKey: .illustrationUrl)
+        category = try container.decodeIfPresent(String.self, forKey: .category)
         monthCategory = try container.decodeIfPresent(String.self, forKey: .monthCategory)
         specificDay = try container.decodeIfPresent(Int.self, forKey: .specificDay)
-        priority = try container.decode(Int.self, forKey: .priority)
+        // Priority can be NULL - default to 0 (non-critical)
+        priority = try container.decodeIfPresent(Int.self, forKey: .priority) ?? 0
         onChecklist = try container.decode(Bool.self, forKey: .onChecklist)
         affiliateUrl = try container.decodeIfPresent(String.self, forKey: .affiliateUrl)
         affiliateButtonText = try container.decodeIfPresent(String.self, forKey: .affiliateButtonText)
@@ -56,7 +61,7 @@ struct Tip: Codable, Identifiable, Equatable {
     }
 
     init(id: UUID, title: String, tipText: String, hasIllustration: Bool, illustrationUrl: String?,
-         monthCategory: String?, specificDay: Int?, priority: Int, onChecklist: Bool,
+         category: String?, monthCategory: String?, specificDay: Int?, priority: Int, onChecklist: Bool,
          affiliateUrl: String?, affiliateButtonText: String?, weddingType: String?,
          isActive: Bool, funTip: Bool, createdAt: Date?) {
         self.id = id
@@ -64,6 +69,7 @@ struct Tip: Codable, Identifiable, Equatable {
         self.tipText = tipText
         self.hasIllustration = hasIllustration
         self.illustrationUrl = illustrationUrl
+        self.category = category
         self.monthCategory = monthCategory
         self.specificDay = specificDay
         self.priority = priority

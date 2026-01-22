@@ -5,6 +5,7 @@ struct TextInputField: View {
     @Binding var text: String
     var keyboardType: UIKeyboardType = .default
     var autocapitalization: TextInputAutocapitalization = .words
+    var autoFocus: Bool = false
 
     @FocusState private var isFocused: Bool
 
@@ -21,6 +22,14 @@ struct TextInputField: View {
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(isFocused ? Color(hex: Constants.Colors.accent) : Color.gray.opacity(0.3), lineWidth: 1.5)
                 )
+        }
+        .onAppear {
+            if autoFocus {
+                // Delay to ensure view transition animation completes and view is ready
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    isFocused = true
+                }
+            }
         }
     }
 }

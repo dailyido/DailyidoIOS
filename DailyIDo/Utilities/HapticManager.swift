@@ -133,4 +133,58 @@ final class HapticManager {
         lightImpactGenerator.impactOccurred(intensity: 0.5)
         lightImpactGenerator.prepare()
     }
+
+    // MARK: - Celebration Haptics
+
+    /// Elaborate celebration sequence for streak milestones
+    func celebrationEntrance() {
+        // Initial heavy "ta-da" impact
+        heavyImpactGenerator.impactOccurred(intensity: 1.0)
+        heavyImpactGenerator.prepare()
+
+        // Quick double-tap feeling
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            self?.mediumImpactGenerator.impactOccurred(intensity: 0.7)
+            self?.mediumImpactGenerator.prepare()
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            self?.mediumImpactGenerator.impactOccurred(intensity: 0.8)
+            self?.mediumImpactGenerator.prepare()
+        }
+
+        // Success flourish
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            self?.notificationGenerator.notificationOccurred(.success)
+            self?.notificationGenerator.prepare()
+        }
+    }
+
+    /// Confetti burst haptic
+    func confettiBurst() {
+        // Rapid light taps to simulate confetti
+        for i in 0..<5 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.06) { [weak self] in
+                self?.lightImpactGenerator.impactOccurred(intensity: CGFloat.random(in: 0.3...0.7))
+                self?.lightImpactGenerator.prepare()
+            }
+        }
+    }
+
+    /// Heart pulse haptic (synced with visual heart animation)
+    func heartPulse() {
+        mediumImpactGenerator.impactOccurred(intensity: 0.6)
+        mediumImpactGenerator.prepare()
+    }
+
+    /// Celebration dismiss haptic
+    func celebrationDismiss() {
+        // Gentle "goodbye" feeling
+        lightImpactGenerator.impactOccurred(intensity: 0.5)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
+            self?.selectionGenerator.selectionChanged()
+            self?.selectionGenerator.prepare()
+        }
+        lightImpactGenerator.prepare()
+    }
 }

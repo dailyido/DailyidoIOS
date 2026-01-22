@@ -87,7 +87,7 @@ struct OptionButton: View {
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(Color(hex: Constants.Colors.buttonPrimary), lineWidth: 2)
                 )
-                .foregroundColor(isSelected ? .white : Color(hex: Constants.Colors.primaryText))
+                .foregroundColor(isSelected ? .white : Color(hex: Constants.Colors.buttonPrimary))
         }
     }
 }

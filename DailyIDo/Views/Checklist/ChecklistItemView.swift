@@ -89,8 +89,8 @@ struct ChecklistItemView: View {
             // Expanded content
             if isExpanded {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Full tip text
-                    Text(item.tip.tipText)
+                    // Full tip text (supports \n for line breaks)
+                    Text(item.tip.tipText.replacingOccurrences(of: "\\n", with: "\n"))
                         .font(.system(size: 15))
                         .foregroundColor(Color(hex: Constants.Colors.secondaryText))
                         .lineSpacing(4)
@@ -137,6 +137,7 @@ struct ChecklistItemView: View {
                     tipText: "Research photographers whose style matches your vision. Book early as the best ones get reserved quickly!",
                     hasIllustration: false,
                     illustrationUrl: nil,
+                    category: "Vendor",
                     monthCategory: "12+ months",
                     specificDay: nil,
                     priority: 1,

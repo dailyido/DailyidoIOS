@@ -257,11 +257,34 @@ final class SupabaseService {
             .from("wedding_tips")
             .select()
             .eq("is_active", value: true)
-            .order("priority", ascending: true)
+            .eq("priority", value: 1)  // Only priority=1 tips are critical early tips
+            .order("specific_day", ascending: false)  // Highest day first (e.g., 600, 599, ...)
             .limit(50)
             .execute()
             .value
 
         return response
+    }
+
+    // MARK: - Storage Operations
+
+    func listRandomIllustrations() async throws -> [String] {
+        print("DEBUG SupabaseService: Listing files from illustrations_random bucket...")
+        let files = try await client.storage
+            .from("illustrations_random")
+            .list()
+
+        print("DEBUG SupabaseService: Raw files count: \(files.count)")
+        for file in files.prefix(5) {
+            print("DEBUG SupabaseService: File: '\(file.name)'")
+        }
+
+        // Filter out any folders, only return image files
+        let filtered = files
+            .filter { !$0.name.isEmpty && !$0.name.hasSuffix("/") }
+            .map { $0.name }
+
+        print("DEBUG SupabaseService: Filtered files count: \(filtered.count)")
+        return filtered
     }
 }

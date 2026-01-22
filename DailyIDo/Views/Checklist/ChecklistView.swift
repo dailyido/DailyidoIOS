@@ -61,7 +61,9 @@ struct ChecklistView: View {
                 }
             }
             .sheet(isPresented: $showSettings) {
-                SettingsView()
+                SettingsView(onDone: {
+                    showSettings = false
+                })
             }
         }
         .task {

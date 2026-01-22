@@ -16,8 +16,6 @@ struct IntroView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        Spacer(minLength: geometry.size.height * 0.08)
-
                         VStack(spacing: 16) {
                             // App icon/logo
                             ZStack {
@@ -70,20 +68,18 @@ struct IntroView: View {
                                 BulletPoint(text: "Exactly what matters right now")
                             }
 
-                            // Calm voice - single line with scaling
+                            // Calm voice
                             Text("Think of this as your calm voice in the chaos.")
                                 .font(.custom("CormorantGaramond-SemiBold", size: 20))
                                 .foregroundColor(primaryColor)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .padding(.top, 12)
 
-                            // Final call to action text - single line with scaling
+                            // Final call to action text
                             Text("Open it daily. Do the thing. Get back to living your life.")
                                 .font(.system(size: 15))
                                 .foregroundColor(secondaryText)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .padding(.top, 4)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -91,7 +87,7 @@ struct IntroView: View {
                         .opacity(showContent ? 1 : 0)
                         .offset(y: showContent ? 0 : 20)
 
-                        Spacer(minLength: geometry.size.height * 0.08)
+                        Spacer(minLength: 24)
 
                         // CTA Button
                         PrimaryButton(title: "Let's plan this wedding") {

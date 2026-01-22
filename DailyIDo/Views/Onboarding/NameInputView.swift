@@ -29,7 +29,7 @@ struct NameInputView: View {
                         .padding(.top, 20)
 
                     // Input field
-                    TextInputField(placeholder: "Your name", text: $viewModel.name)
+                    TextInputField(placeholder: "Your name", text: $viewModel.name, autoFocus: true)
                         .padding(.horizontal, 24)
                         .padding(.top, 24)
 
@@ -80,7 +80,7 @@ struct PartnerNameInputView: View {
                         .padding(.top, 20)
 
                     // Input field
-                    TextInputField(placeholder: "Partner's name", text: $viewModel.partnerName)
+                    TextInputField(placeholder: "Partner's name", text: $viewModel.partnerName, autoFocus: true)
                         .padding(.horizontal, 24)
                         .padding(.top, 24)
 

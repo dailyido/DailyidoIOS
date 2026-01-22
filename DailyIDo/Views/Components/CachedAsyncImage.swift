@@ -6,18 +6,22 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     let url: URL?
     let content: (Image) -> Content
     let placeholder: () -> Placeholder
+    var onFailure: (() -> Void)?
 
     @State private var loadedImage: UIImage?
     @State private var isLoading = false
+    @State private var hasFailed = false
 
     init(
         url: URL?,
         @ViewBuilder content: @escaping (Image) -> Content,
-        @ViewBuilder placeholder: @escaping () -> Placeholder
+        @ViewBuilder placeholder: @escaping () -> Placeholder,
+        onFailure: (() -> Void)? = nil
     ) {
         self.url = url
         self.content = content
         self.placeholder = placeholder
+        self.onFailure = onFailure
     }
 
     var body: some View {
@@ -39,7 +43,7 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     }
 
     private func loadImage() {
-        guard let url = url, !isLoading else { return }
+        guard let url = url, !isLoading, !hasFailed else { return }
 
         // Check cache first
         if let cached = ImageCache.shared.get(for: url) {
@@ -51,19 +55,77 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
 
         Task {
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
+                let (data, response) = try await URLSession.shared.data(from: url)
+
+                // Check for HTTP error status
+                if let httpResponse = response as? HTTPURLResponse,
+                   httpResponse.statusCode != 200 {
+                    await MainActor.run {
+                        isLoading = false
+                        hasFailed = true
+                        onFailure?()
+                    }
+                    return
+                }
+
                 if let image = UIImage(data: data) {
                     ImageCache.shared.set(image, for: url)
                     await MainActor.run {
                         loadedImage = image
                         isLoading = false
                     }
+                } else {
+                    // Data received but couldn't create image
+                    await MainActor.run {
+                        isLoading = false
+                        hasFailed = true
+                        onFailure?()
+                    }
                 }
             } catch {
                 await MainActor.run {
                     isLoading = false
+                    hasFailed = true
+                    onFailure?()
                 }
             }
+        }
+    }
+}
+
+/// Illustration view for tips that automatically falls back to random illustrations
+struct TipIllustrationView: View {
+    let tip: Tip
+    let size: CGFloat
+
+    @State private var useRandomFallback = false
+
+    private var illustrationUrl: String? {
+        if useRandomFallback {
+            // Get random illustration URL directly
+            return RandomIllustrationService.shared.getRandomIllustrationUrl(for: tip.id)
+        } else {
+            return RandomIllustrationService.shared.getIllustrationUrl(for: tip)
+        }
+    }
+
+    var body: some View {
+        if let urlString = illustrationUrl, let url = URL(string: urlString) {
+            CachedAsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } placeholder: {
+                Color.clear
+            } onFailure: {
+                // If the tip's own illustration failed, try random fallback
+                if !useRandomFallback && tip.hasIllustration {
+                    print("DEBUG TipIllustrationView: Tip's illustration failed, falling back to random")
+                    useRandomFallback = true
+                }
+            }
+            .frame(width: size, height: size)
+            .id(urlString + (useRandomFallback ? "-fallback" : ""))
         }
     }
 }

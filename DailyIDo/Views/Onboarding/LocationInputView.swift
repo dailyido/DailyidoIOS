@@ -42,7 +42,8 @@ struct LocationInputView: View {
                         placeholder: "Start typing a city name...",
                         selectedPlace: $viewModel.weddingTown,
                         latitude: $viewModel.weddingLatitude,
-                        longitude: $viewModel.weddingLongitude
+                        longitude: $viewModel.weddingLongitude,
+                        autoFocus: true
                     )
                     .padding(.horizontal, 24)
                     .padding(.top, 16)
@@ -65,6 +66,7 @@ struct LocationInputView: View {
                         .font(.system(size: 14))
                         .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.8))
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, 32)
                         .padding(.top, 12)
 

@@ -31,10 +31,10 @@ struct TipCardView: View {
             Divider()
                 .padding(.horizontal, 24)
 
-            ScrollView {
+            ScrollView(showsIndicators: true) {
                 VStack(spacing: 20) {
-                    // Illustration
-                    if let tip = tip, tip.hasIllustration, let urlString = tip.fullIllustrationUrl {
+                    // Illustration (own or random fallback)
+                    if let tip = tip, let urlString = RandomIllustrationService.shared.getIllustrationUrl(for: tip) {
                         CachedAsyncImage(url: URL(string: urlString)) { image in
                             image
                                 .resizable()
@@ -47,24 +47,25 @@ struct TipCardView: View {
                         .padding(.top, 20)
                     }
 
-                    // Tip title
+                    // Tip title (supports \n for line breaks)
                     if let tip = tip {
-                        Text(tip.title)
+                        Text(tip.title.replacingOccurrences(of: "\\n", with: "\n"))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(Color(hex: Constants.Colors.primaryText))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 24)
-                            .padding(.top, tip.hasIllustration ? 0 : 20)
+                            .padding(.top, RandomIllustrationService.shared.getIllustrationUrl(for: tip) != nil ? 0 : 20)
                     }
 
-                    // Tip text
+                    // Tip text (supports \n for line breaks)
                     if let tip = tip {
-                        Text(tip.tipText)
+                        Text(tip.tipText.replacingOccurrences(of: "\\n", with: "\n"))
                             .font(.system(size: 16))
                             .foregroundColor(Color(hex: Constants.Colors.secondaryText))
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                             .padding(.horizontal, 24)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     // Affiliate button (if available)
@@ -80,12 +81,12 @@ struct TipCardView: View {
                                 Image(systemName: "arrow.up.right")
                                     .font(.system(size: 13))
                             }
-                            .foregroundColor(Color(hex: Constants.Colors.accent))
+                            .foregroundColor(.white)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 12)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(hex: Constants.Colors.accent), lineWidth: 1.5)
+                                    .fill(Color(hex: "#847996"))
                             )
                         }
                         .padding(.top, 8)
@@ -93,8 +94,7 @@ struct TipCardView: View {
                 }
                 .padding(.bottom, 20)
             }
-
-            Spacer()
+            .frame(maxHeight: .infinity)
 
             // Share button
             if tip != nil {
@@ -155,6 +155,7 @@ struct IllustrationPlaceholder: View {
             tipText: "Begin compiling your guest list early. This will help you determine your venue size and budget. Start with immediate family and close friends, then expand from there.",
             hasIllustration: false,
             illustrationUrl: nil,
+            category: "Planning",
             monthCategory: "12+ months",
             specificDay: nil,
             priority: 1,

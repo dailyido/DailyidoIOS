@@ -127,6 +127,7 @@ struct ShareableCalendarCard: View {
     let daysUntilWedding: Int
     let tipTitle: String
     let tipText: String
+    var illustrationImage: UIImage? = nil
 
     private let accentColor = Color(hex: Constants.Colors.accent)
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
@@ -171,28 +172,23 @@ struct ShareableCalendarCard: View {
             // Main content
             VStack(spacing: 0) {
                 Spacer()
-                    .frame(height: 180)
+                    .frame(height: 120)
 
-                // Days countdown - HUGE
-                VStack(spacing: 16) {
+                // Days countdown
+                VStack(spacing: 12) {
                     Text("\(daysUntilWedding)")
-                        .font(.system(size: 280, weight: .light))
+                        .font(.system(size: illustrationImage != nil ? 200 : 280, weight: .light))
                         .foregroundColor(primaryColor)
-                        .tracking(-10)
+                        .tracking(-8)
 
-                    Text("DAYS UNTIL")
-                        .font(.system(size: 32, weight: .semibold))
-                        .tracking(12)
-                        .foregroundColor(primaryColor.opacity(0.6))
-
-                    Text("YOUR WEDDING")
-                        .font(.system(size: 32, weight: .semibold))
-                        .tracking(12)
+                    Text("DAYS UNTIL YOUR WEDDING")
+                        .font(.system(size: 28, weight: .semibold))
+                        .tracking(8)
                         .foregroundColor(primaryColor.opacity(0.6))
                 }
 
                 Spacer()
-                    .frame(height: 80)
+                    .frame(height: 50)
 
                 // Decorative divider
                 HStack(spacing: 24) {
@@ -222,37 +218,49 @@ struct ShareableCalendarCard: View {
                 }
 
                 Spacer()
-                    .frame(height: 80)
+                    .frame(height: 50)
+
+                // Illustration (if available)
+                if let uiImage = illustrationImage {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 280)
+                        .padding(.horizontal, 120)
+
+                    Spacer()
+                        .frame(height: 30)
+                }
 
                 // Today's tip section
-                VStack(spacing: 28) {
+                VStack(spacing: illustrationImage != nil ? 20 : 32) {
                     Text("TODAY'S TIP")
-                        .font(.system(size: 28, weight: .semibold))
-                        .tracking(10)
+                        .font(.system(size: illustrationImage != nil ? 28 : 34, weight: .semibold))
+                        .tracking(8)
                         .foregroundColor(accentColor)
 
-                    Text(tipTitle)
-                        .font(.custom("CormorantGaramond-Bold", size: 80))
+                    Text(tipTitle.replacingOccurrences(of: "\\n", with: "\n"))
+                        .font(.custom("CormorantGaramond-Bold", size: illustrationImage != nil ? 72 : 100))
                         .foregroundColor(primaryColor)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 60)
-                        .lineLimit(3)
-                        .minimumScaleFactor(0.6)
+                        .padding(.horizontal, 80)
+                        .lineLimit(4)
+                        .minimumScaleFactor(0.4)
 
-                    Text(tipText)
-                        .font(.system(size: 60, weight: .regular))
+                    Text(tipText.replacingOccurrences(of: "\\n", with: "\n"))
+                        .font(.system(size: illustrationImage != nil ? 48 : 60, weight: .regular))
                         .foregroundColor(primaryColor.opacity(0.75))
                         .multilineTextAlignment(.center)
-                        .lineSpacing(12)
-                        .padding(.horizontal, 60)
-                        .lineLimit(6)
-                        .minimumScaleFactor(0.6)
+                        .lineSpacing(illustrationImage != nil ? 8 : 14)
+                        .padding(.horizontal, 80)
+                        .lineLimit(illustrationImage != nil ? 6 : 8)
+                        .minimumScaleFactor(0.35)
                 }
 
                 Spacer()
 
                 // Branding footer - prominent
-                VStack(spacing: 24) {
+                VStack(spacing: 20) {
                     // Decorative line
                     Rectangle()
                         .fill(accentColor.opacity(0.3))
@@ -277,7 +285,7 @@ struct ShareableCalendarCard: View {
                         .foregroundColor(primaryColor.opacity(0.5))
                         .tracking(2)
                 }
-                .padding(.bottom, 120)
+                .padding(.bottom, 100)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

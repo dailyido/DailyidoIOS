@@ -7,6 +7,7 @@ struct FunTip: Codable, Identifiable, Equatable {
     let hasIllustration: Bool
     let illustrationUrl: String?
     let category: String
+    let priority: Int?  // Priority 1 fun tips shown first
     let affiliateUrl: String?
     let affiliateButtonText: String?
     let isActive: Bool
@@ -19,6 +20,7 @@ struct FunTip: Codable, Identifiable, Equatable {
         case hasIllustration = "has_illustration"
         case illustrationUrl = "illustration_url"
         case category
+        case priority
         case affiliateUrl = "affiliate_url"
         case affiliateButtonText = "affiliate_button_text"
         case isActive = "is_active"
@@ -34,6 +36,7 @@ struct FunTip: Codable, Identifiable, Equatable {
         illustrationUrl = try container.decodeIfPresent(String.self, forKey: .illustrationUrl)
         // Default to "general" if category column doesn't exist
         category = try container.decodeIfPresent(String.self, forKey: .category) ?? "general"
+        priority = try container.decodeIfPresent(Int.self, forKey: .priority)
         affiliateUrl = try container.decodeIfPresent(String.self, forKey: .affiliateUrl)
         affiliateButtonText = try container.decodeIfPresent(String.self, forKey: .affiliateButtonText)
         isActive = try container.decodeIfPresent(Bool.self, forKey: .isActive) ?? true
@@ -41,13 +44,14 @@ struct FunTip: Codable, Identifiable, Equatable {
     }
 
     init(id: UUID, title: String, tipText: String, hasIllustration: Bool, illustrationUrl: String?,
-         category: String, affiliateUrl: String?, affiliateButtonText: String?, isActive: Bool, createdAt: Date?) {
+         category: String, priority: Int?, affiliateUrl: String?, affiliateButtonText: String?, isActive: Bool, createdAt: Date?) {
         self.id = id
         self.title = title
         self.tipText = tipText
         self.hasIllustration = hasIllustration
         self.illustrationUrl = illustrationUrl
         self.category = category
+        self.priority = priority
         self.affiliateUrl = affiliateUrl
         self.affiliateButtonText = affiliateButtonText
         self.isActive = isActive
@@ -72,6 +76,7 @@ struct FunTip: Codable, Identifiable, Equatable {
             tipText: tipText,
             hasIllustration: hasIllustration,
             illustrationUrl: illustrationUrl,
+            category: category,
             monthCategory: nil,
             specificDay: nil,
             priority: 0,

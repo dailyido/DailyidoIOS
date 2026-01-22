@@ -22,6 +22,7 @@ final class CalendarViewModel: ObservableObject {
 
     // MARK: - Tip Cache
     private var tipCache: [Int: Tip] = [:]
+    private var cacheCreatedAtDay: Int?  // Track when cache was created to invalidate on day change
 
     // Velocity tracking
     private var lastDragOffset: CGFloat = 0
@@ -111,8 +112,19 @@ final class CalendarViewModel: ObservableObject {
     func loadData() async {
         isLoading = true
 
+        // Clear tip cache on each load to ensure fresh calculations
+        // This is important when the actual day has changed since last session
+        tipCache.removeAll()
+        cacheCreatedAtDay = actualDaysUntilWedding
+
+        print("DEBUG CalendarVM: 🔴🔴🔴 loadData started - CACHE CLEARED, cacheCreatedAtDay=\(actualDaysUntilWedding) 🔴🔴🔴")
+        print("DEBUG CalendarVM: user = \(String(describing: user))")
+        print("DEBUG CalendarVM: user.weddingDate = \(String(describing: user?.weddingDate))")
+        print("DEBUG CalendarVM: actualDaysUntilWedding = \(actualDaysUntilWedding)")
+
         do {
             try await tipService.loadTips()
+            print("DEBUG CalendarVM: tips loaded, count = \(tipService.tips.count)")
             try await streakService.updateStreak()
 
             // Load fun tip history for smart tip selection
@@ -121,7 +133,9 @@ final class CalendarViewModel: ObservableObject {
             }
 
             calculateInitialPosition()
+            print("DEBUG CalendarVM: after calculateInitialPosition, displayedDaysOut = \(displayedDaysOut)")
             updateCurrentTip()
+            print("DEBUG CalendarVM: after updateCurrentTip, currentTip = \(String(describing: currentTip?.title))")
         } catch {
             print("Error loading calendar data: \(error)")
         }
@@ -130,15 +144,23 @@ final class CalendarViewModel: ObservableObject {
     }
 
     private func calculateInitialPosition() {
-        guard let user = user else { return }
+        guard let user = user else {
+            print("DEBUG CalendarVM: calculateInitialPosition - NO USER, returning early")
+            return
+        }
+
+        print("DEBUG CalendarVM: calculateInitialPosition - user.lastViewedDay = \(String(describing: user.lastViewedDay))")
+        print("DEBUG CalendarVM: calculateInitialPosition - actualDaysUntilWedding = \(actualDaysUntilWedding)")
 
         if let lastViewedDay = user.lastViewedDay {
             displayedDaysOut = lastViewedDay
             isFirstDay = false
+            print("DEBUG CalendarVM: using lastViewedDay = \(lastViewedDay)")
         } else {
             // First time user - start 3 days back so they can swipe through a few tips
             displayedDaysOut = actualDaysUntilWedding + 3
             isFirstDay = true
+            print("DEBUG CalendarVM: first time user, setting displayedDaysOut = \(displayedDaysOut)")
 
             Task {
                 await saveLastViewedDay(displayedDaysOut)
@@ -146,13 +168,30 @@ final class CalendarViewModel: ObservableObject {
         }
     }
 
+    /// Call this when the app becomes active to refresh if needed
+    func refreshIfNeeded() {
+        // Check if the actual day has changed since cache was created
+        if let cacheDay = cacheCreatedAtDay, cacheDay != actualDaysUntilWedding {
+            print("DEBUG CalendarVM: 🔴 refreshIfNeeded - day changed from \(cacheDay) to \(actualDaysUntilWedding), clearing cache")
+            tipCache.removeAll()
+            cacheCreatedAtDay = actualDaysUntilWedding
+            updateCurrentTip()
+        }
+    }
+
     func updateCurrentTip() {
-        guard let user = user else { return }
+        guard let user = user else {
+            print("DEBUG CalendarVM: updateCurrentTip - NO USER")
+            return
+        }
+
 
         // Use the new user-aware tip selection that handles long engagements
+        // Pass actualDaysUntilWedding so first-time users get priority 1 tip when caught up
         let tip = tipService.getTipForDay(
             user: user,
-            daysUntilWedding: displayedDaysOut
+            daysUntilWedding: displayedDaysOut,
+            actualDaysUntilWedding: actualDaysUntilWedding
         )
         currentTip = tip
 
@@ -172,14 +211,13 @@ final class CalendarViewModel: ObservableObject {
 
         // Otherwise fetch and cache it
         guard let user = user else { return nil }
-        // Use the new user-aware tip selection
         let tip = tipService.getTipForDay(
             user: user,
-            daysUntilWedding: daysOut
+            daysUntilWedding: daysOut,
+            actualDaysUntilWedding: actualDaysUntilWedding
         )
         if let tip = tip {
             tipCache[daysOut] = tip
-            // Pre-cache the image
             precacheImage(for: tip)
         }
         return tip
@@ -194,6 +232,8 @@ final class CalendarViewModel: ObservableObject {
     private func precacheNearbyTips() {
         guard let user = user else { return }
 
+        print("DEBUG CalendarVM: precacheNearbyTips - displayedDaysOut=\(displayedDaysOut), actualDaysUntilWedding=\(actualDaysUntilWedding)")
+
         let daysToCache = [
             displayedDaysOut - 3,
             displayedDaysOut - 2,
@@ -203,21 +243,28 @@ final class CalendarViewModel: ObservableObject {
 
         for day in daysToCache where day > 0 {
             if tipCache[day] == nil {
+                print("DEBUG CalendarVM: precaching day \(day) (actual=\(actualDaysUntilWedding), isCaughtUp=\(day == actualDaysUntilWedding))")
                 // Use the new user-aware tip selection
+                // Pass actualDaysUntilWedding for first-time user experience
                 if let tip = tipService.getTipForDay(
                     user: user,
-                    daysUntilWedding: day
+                    daysUntilWedding: day,
+                    actualDaysUntilWedding: actualDaysUntilWedding
                 ) {
                     tipCache[day] = tip
+                    print("DEBUG CalendarVM: precached day \(day) -> \(tip.title)")
                     precacheImage(for: tip)
                 }
+            } else {
+                print("DEBUG CalendarVM: day \(day) already in cache")
             }
         }
     }
 
     // Pre-cache illustration image for a tip
     private func precacheImage(for tip: Tip) {
-        guard tip.hasIllustration, let urlString = tip.fullIllustrationUrl, let url = URL(string: urlString) else {
+        guard let urlString = RandomIllustrationService.shared.getIllustrationUrl(for: tip),
+              let url = URL(string: urlString) else {
             return
         }
 
@@ -365,22 +412,66 @@ final class CalendarViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
             guard let self = self else { return }
 
+            // Pre-fetch the next tip before any state changes
+            let nextDaysOut = self.displayedDaysOut - 1
+            let nextTip = self.cachedTip(for: nextDaysOut)
+
+            // Reset all state immediately WITHOUT animation, including the tip update
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                // Update displayed day and tip synchronously
+                self.displayedDaysOut = nextDaysOut
+                self.currentTip = nextTip
+
+                // Reset animation state
+                self.dragOffset = 0
+                self.tearOpacity = 1.0
+                self.backgroundCardRise = 0
+                self.hasSnapped = false
+                self.isDragging = false
+                self.lastDragOffset = 0
+                self.isTearing = false
+            }
+
+            // Pre-cache nearby tips for future swipes
+            self.precacheNearbyTips()
+
+            // Handle async operations (paywall, database) in background
             Task {
-                await self.tearPage()
-                await MainActor.run {
-                    // Reset all state immediately WITHOUT animation
-                    var transaction = Transaction()
-                    transaction.disablesAnimations = true
-                    withTransaction(transaction) {
-                        self.dragOffset = 0
-                        self.tearOpacity = 1.0
-                        self.backgroundCardRise = 0
-                        self.hasSnapped = false
-                        self.isDragging = false
-                        self.lastDragOffset = 0
-                        self.isTearing = false
-                    }
-                }
+                await self.handleTearPageAsync(nextDaysOut: nextDaysOut)
+            }
+        }
+    }
+
+    // Handle async tear operations separately to avoid blocking UI
+    private func handleTearPageAsync(nextDaysOut: Int) async {
+        guard let user = user else { return }
+
+        let mostAdvancedDay = user.lastViewedDay ?? actualDaysUntilWedding
+        let isNewTip = nextDaysOut < mostAdvancedDay
+
+        // Check paywall for new tips
+        if isNewTip && !user.isSubscribed && !subscriptionService.isSubscribed {
+            let newTearsCount = user.tipsViewedCount + 1
+
+            if newTearsCount > Constants.freeTipLimit {
+                await subscriptionService.showTipLimitPaywall()
+                // Note: If they didn't subscribe, we've already shown them the tip
+                // The paywall will appear next time they try to tear
+            }
+
+            await updateTearsCount(newTearsCount)
+        }
+
+        // Save progress
+        if isNewTip {
+            await saveLastViewedDay(nextDaysOut)
+        }
+
+        if isFirstDay {
+            await MainActor.run {
+                isFirstDay = false
             }
         }
     }
@@ -406,12 +497,19 @@ final class CalendarViewModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
             guard let self = self else { return }
 
-            self.goBack()
+            // Pre-fetch the previous tip before any state changes
+            let prevDaysOut = self.displayedDaysOut + 1
+            let prevTip = self.cachedTip(for: prevDaysOut)
 
-            // Reset all state immediately WITHOUT animation
+            // Reset all state immediately WITHOUT animation, including the tip update
             var transaction = Transaction()
             transaction.disablesAnimations = true
             withTransaction(transaction) {
+                // Update displayed day and tip synchronously
+                self.displayedDaysOut = prevDaysOut
+                self.currentTip = prevTip
+
+                // Reset animation state
                 self.dragOffset = 0
                 self.tearOpacity = 1.0
                 self.backgroundCardRise = 0
@@ -419,6 +517,14 @@ final class CalendarViewModel: ObservableObject {
                 self.isDragging = false
                 self.lastDragOffset = 0
                 self.isTearing = false
+            }
+
+            // Pre-cache nearby tips for future swipes
+            self.precacheNearbyTips()
+
+            // User has interacted, so they're no longer on "first day" restriction
+            if self.isFirstDay {
+                self.isFirstDay = false
             }
         }
     }
@@ -447,62 +553,6 @@ final class CalendarViewModel: ObservableObject {
         if !isTearing {
             dragOffset = 0
             backgroundCardRise = 0
-        }
-    }
-
-    // MARK: - Page Actions
-
-    func tearPage() async {
-        guard canTear else { return }
-        guard let user = user else { return }
-
-        let nextDay = displayedDaysOut - 1
-        let mostAdvancedDay = user.lastViewedDay ?? actualDaysUntilWedding
-
-        // Check if this is a NEW tip (a day number lower than their most advanced position)
-        let isNewTip = nextDay < mostAdvancedDay
-
-        if isNewTip && !user.isSubscribed && !subscriptionService.isSubscribed {
-            let newTearsCount = user.tipsViewedCount + 1
-
-            if newTearsCount > Constants.freeTipLimit {
-                // Hard paywall - show and wait for user response
-                await subscriptionService.showTipLimitPaywall()
-
-                // After paywall dismisses, check if they subscribed
-                // If not, block the swipe
-                if !subscriptionService.isSubscribed {
-                    return
-                }
-            }
-
-            await updateTearsCount(newTearsCount)
-        }
-
-        // Move forward in time (decrease days out by 1)
-        displayedDaysOut -= 1
-
-        // Only update lastViewedDay if this is a new most-advanced position
-        if isNewTip {
-            await saveLastViewedDay(displayedDaysOut)
-        }
-
-        updateCurrentTip()
-
-        if isFirstDay {
-            isFirstDay = false
-        }
-    }
-
-    func goBack() {
-        guard canGoBack else { return }
-
-        displayedDaysOut += 1
-        updateCurrentTip()
-
-        // User has interacted, so they're no longer on "first day" restriction
-        if isFirstDay {
-            isFirstDay = false
         }
     }
 
