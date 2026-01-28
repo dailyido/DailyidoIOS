@@ -18,6 +18,34 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             try? await StreakService.shared.loadMilestones()
         }
 
+        // Start analytics session
+        AnalyticsService.shared.startSession()
+
+        // Set up app lifecycle observers for analytics
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willResignActiveNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            AnalyticsService.shared.appBackgrounded()
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            AnalyticsService.shared.appForegrounded()
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            AnalyticsService.shared.endSession()
+        }
+
         return true
     }
 

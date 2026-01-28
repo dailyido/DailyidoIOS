@@ -10,15 +10,15 @@ struct TentedQuestionView: View {
                     Spacer()
                         .frame(height: max(40, geometry.size.height * 0.15))
 
-                    // Icon
+                    // Icon - Wedding tent/marquee
                     ZStack {
                         Circle()
                             .fill(Color(hex: Constants.Colors.accent).opacity(0.1))
                             .frame(width: 100, height: 100)
 
-                        Image(systemName: "tent.fill")
-                            .font(.system(size: 40))
-                            .foregroundColor(Color(hex: Constants.Colors.illustrationTint))
+                        WeddingTentIcon()
+                            .fill(Color(hex: Constants.Colors.illustrationTint))
+                            .frame(width: 50, height: 40)
                     }
 
                     // Title
@@ -57,6 +57,66 @@ struct TentedQuestionView: View {
                 .frame(minHeight: geometry.size.height)
             }
         }
+    }
+}
+
+// Custom wedding tent/marquee shape - elegant sailcloth style
+struct WeddingTentIcon: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        let width = rect.width
+        let height = rect.height
+
+        // Elegant sailcloth tent with swooping canopy
+        // Start at bottom left
+        path.move(to: CGPoint(x: 0, y: height))
+
+        // Left pole (straight up)
+        path.addLine(to: CGPoint(x: width * 0.08, y: height * 0.4))
+
+        // Canopy swoops up to center peak
+        path.addQuadCurve(
+            to: CGPoint(x: width * 0.5, y: height * 0.05),
+            control: CGPoint(x: width * 0.25, y: height * 0.35)
+        )
+
+        // Canopy swoops down to right
+        path.addQuadCurve(
+            to: CGPoint(x: width * 0.92, y: height * 0.4),
+            control: CGPoint(x: width * 0.75, y: height * 0.35)
+        )
+
+        // Right pole (straight down)
+        path.addLine(to: CGPoint(x: width, y: height))
+
+        // Bottom edge
+        path.addLine(to: CGPoint(x: 0, y: height))
+
+        path.closeSubpath()
+
+        // Left flag
+        path.move(to: CGPoint(x: width * 0.08, y: height * 0.4))
+        path.addLine(to: CGPoint(x: width * 0.08, y: height * 0.22))
+        path.addLine(to: CGPoint(x: width * 0.18, y: height * 0.28))
+        path.addLine(to: CGPoint(x: width * 0.08, y: height * 0.34))
+        path.closeSubpath()
+
+        // Center flag
+        path.move(to: CGPoint(x: width * 0.5, y: height * 0.05))
+        path.addLine(to: CGPoint(x: width * 0.5, y: -height * 0.12))
+        path.addLine(to: CGPoint(x: width * 0.62, y: -height * 0.05))
+        path.addLine(to: CGPoint(x: width * 0.5, y: height * 0.02))
+        path.closeSubpath()
+
+        // Right flag
+        path.move(to: CGPoint(x: width * 0.92, y: height * 0.4))
+        path.addLine(to: CGPoint(x: width * 0.92, y: height * 0.22))
+        path.addLine(to: CGPoint(x: width * 1.02, y: height * 0.28))
+        path.addLine(to: CGPoint(x: width * 0.92, y: height * 0.34))
+        path.closeSubpath()
+
+        return path
     }
 }
 

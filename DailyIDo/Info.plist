@@ -26,6 +26,8 @@
 	<string>We send you daily wedding tips to help you plan your perfect day.</string>
 	<key>NSRemindersUsageDescription</key>
 	<string>Save wedding planning tips to your Reminders so you don't forget important tasks.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Allow microphone access to record voice feedback.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>CormorantGaramond-Regular.ttf</string>

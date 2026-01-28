@@ -93,24 +93,63 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     }
 }
 
-/// Illustration view for tips that automatically falls back to random illustrations
+/// Cache for illustration URLs - ensures the same tip always shows the same image
+final class IllustrationURLCache {
+    static let shared = IllustrationURLCache()
+
+    private var cache: [UUID: String] = [:]
+    private let lock = NSLock()
+
+    private init() {}
+
+    /// Get or compute the illustration URL for a tip (thread-safe)
+    func getURL(for tip: Tip) -> String? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        // Return cached URL if available
+        if let cached = cache[tip.id] {
+            return cached
+        }
+
+        // Compute and cache the URL
+        let url = RandomIllustrationService.shared.getIllustrationUrl(for: tip)
+        if let url = url {
+            cache[tip.id] = url
+        }
+        return url
+    }
+
+    /// Pre-cache a URL for a tip
+    func preCache(tip: Tip) {
+        _ = getURL(for: tip)
+    }
+
+    /// Clear the cache (call on logout or major state changes)
+    func clear() {
+        lock.lock()
+        cache.removeAll()
+        lock.unlock()
+    }
+}
+
+/// Illustration view for tips that uses cached URLs to prevent glitching
 struct TipIllustrationView: View {
     let tip: Tip
     let size: CGFloat
 
-    @State private var useRandomFallback = false
+    // Get the URL once on init and keep it stable
+    private let cachedUrl: String?
 
-    private var illustrationUrl: String? {
-        if useRandomFallback {
-            // Get random illustration URL directly
-            return RandomIllustrationService.shared.getRandomIllustrationUrl(for: tip.id)
-        } else {
-            return RandomIllustrationService.shared.getIllustrationUrl(for: tip)
-        }
+    init(tip: Tip, size: CGFloat) {
+        self.tip = tip
+        self.size = size
+        // Use the cached URL - this ensures stability during view recreation
+        self.cachedUrl = IllustrationURLCache.shared.getURL(for: tip)
     }
 
     var body: some View {
-        if let urlString = illustrationUrl, let url = URL(string: urlString) {
+        if let urlString = cachedUrl, let url = URL(string: urlString) {
             CachedAsyncImage(url: url) { image in
                 image
                     .resizable()
@@ -118,14 +157,11 @@ struct TipIllustrationView: View {
             } placeholder: {
                 Color.clear
             } onFailure: {
-                // If the tip's own illustration failed, try random fallback
-                if !useRandomFallback && tip.hasIllustration {
-                    print("DEBUG TipIllustrationView: Tip's illustration failed, falling back to random")
-                    useRandomFallback = true
-                }
+                // URL is cached, so failure means the image truly doesn't exist
+                // Nothing to do here - the placeholder will show
             }
             .frame(width: size, height: size)
-            .id(urlString + (useRandomFallback ? "-fallback" : ""))
+            .id(tip.id.uuidString) // Stable ID based on tip
         }
     }
 }

@@ -4,6 +4,7 @@ struct ReferralSourceView: View {
     @ObservedObject var viewModel: OnboardingViewModel
 
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
+    private let accentColor = Color(hex: Constants.Colors.accent)
     private let secondaryText = Color(hex: Constants.Colors.secondaryText)
 
     private let sources = [
@@ -44,7 +45,8 @@ struct ReferralSourceView: View {
                                     title: source.0,
                                     icon: source.1,
                                     isSelected: viewModel.referralSource == source.0,
-                                    primaryColor: primaryColor
+                                    primaryColor: primaryColor,
+                                    accentColor: accentColor
                                 ) {
                                     HapticManager.shared.buttonTap()
                                     viewModel.referralSource = source.0
@@ -77,6 +79,7 @@ struct ReferralOptionButton: View {
     let icon: String
     let isSelected: Bool
     let primaryColor: Color
+    let accentColor: Color
     let action: () -> Void
 
     var body: some View {
@@ -103,11 +106,11 @@ struct ReferralOptionButton: View {
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? primaryColor : Color.white)
+                    .fill(isSelected ? accentColor : Color.white)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(primaryColor, lineWidth: isSelected ? 0 : 2)
+                    .stroke(isSelected ? accentColor : primaryColor, lineWidth: isSelected ? 0 : 2)
             )
         }
     }

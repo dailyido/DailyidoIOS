@@ -85,6 +85,9 @@ struct MainTabView: View {
                     case 2:
                         SettingsView(onDone: {
                             selectedTab = 0
+                        }, onRestartTutorial: {
+                            selectedTab = 0
+                            showTutorial = true
                         })
                     default:
                         CalendarView(isTutorialShowing: $showTutorial)
@@ -100,6 +103,18 @@ struct MainTabView: View {
                 // Refresh photo when leaving settings tab
                 if newTab != 2 {
                     couplePhoto = OnboardingViewModel.loadCouplePhoto()
+                }
+
+                // Track tab opens
+                switch newTab {
+                case 0:
+                    AnalyticsService.shared.logTabOpened("calendar")
+                case 1:
+                    AnalyticsService.shared.logTabOpened("checklist")
+                case 2:
+                    AnalyticsService.shared.logSettingsOpened()
+                default:
+                    break
                 }
             }
 
@@ -292,9 +307,10 @@ struct CustomTabBar: View {
         HStack(spacing: 0) {
             // Calendar Tab
             TabBarButton(
-                icon: "calendar",
+                icon: "",
                 title: "Calendar",
-                isSelected: selectedTab == 0
+                isSelected: selectedTab == 0,
+                useCustomCalendarIcon: true
             ) {
                 HapticManager.shared.buttonTap()
                 selectedTab = 0
@@ -370,13 +386,20 @@ struct TabBarButton: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
+    var useCustomCalendarIcon: Bool = false
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .frame(height: 24)
+                if useCustomCalendarIcon {
+                    FlipCalendarIcon()
+                        .frame(width: 22, height: 22)
+                        .frame(height: 24)
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 20))
+                        .frame(height: 24)
+                }
 
                 Text(title)
                     .font(.system(size: 10, weight: .regular))
@@ -389,6 +412,113 @@ struct TabBarButton: View {
             )
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
+        }
+    }
+}
+
+// Custom flip calendar icon with grommets and curled corner
+struct FlipCalendarIcon: View {
+    var body: some View {
+        GeometryReader { geo in
+            let size = min(geo.size.width, geo.size.height)
+            let strokeWidth: CGFloat = size * 0.08
+            let cornerRadius: CGFloat = size * 0.12
+            let grommetRadius: CGFloat = size * 0.06
+            let grommetY: CGFloat = size * 0.08
+            let curlSize: CGFloat = size * 0.22
+
+            ZStack {
+                // Main calendar body with curled corner
+                Path { path in
+                    let rect = CGRect(x: 0, y: grommetY, width: size, height: size - grommetY)
+
+                    // Start at top-left corner
+                    path.move(to: CGPoint(x: cornerRadius, y: rect.minY))
+
+                    // Top edge
+                    path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
+                    path.addArc(
+                        center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
+                        radius: cornerRadius,
+                        startAngle: .degrees(-90),
+                        endAngle: .degrees(0),
+                        clockwise: false
+                    )
+
+                    // Right edge down to curl
+                    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - curlSize - cornerRadius))
+
+                    // Curl corner - diagonal then curve
+                    path.addLine(to: CGPoint(x: rect.maxX - curlSize * 0.3, y: rect.maxY - curlSize))
+                    path.addQuadCurve(
+                        to: CGPoint(x: rect.maxX - curlSize, y: rect.maxY - curlSize * 0.3),
+                        control: CGPoint(x: rect.maxX - curlSize * 0.5, y: rect.maxY - curlSize * 0.5)
+                    )
+                    path.addLine(to: CGPoint(x: rect.maxX - curlSize, y: rect.maxY))
+
+                    // Bottom edge
+                    path.addLine(to: CGPoint(x: cornerRadius, y: rect.maxY))
+                    path.addArc(
+                        center: CGPoint(x: cornerRadius, y: rect.maxY - cornerRadius),
+                        radius: cornerRadius,
+                        startAngle: .degrees(90),
+                        endAngle: .degrees(180),
+                        clockwise: false
+                    )
+
+                    // Left edge
+                    path.addLine(to: CGPoint(x: 0, y: rect.minY + cornerRadius))
+                    path.addArc(
+                        center: CGPoint(x: cornerRadius, y: rect.minY + cornerRadius),
+                        radius: cornerRadius,
+                        startAngle: .degrees(180),
+                        endAngle: .degrees(270),
+                        clockwise: false
+                    )
+                }
+                .stroke(style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round, lineJoin: .round))
+
+                // Curl detail line
+                Path { path in
+                    let rect = CGRect(x: 0, y: grommetY, width: size, height: size - grommetY)
+                    path.move(to: CGPoint(x: rect.maxX - curlSize * 0.3, y: rect.maxY - curlSize))
+                    path.addQuadCurve(
+                        to: CGPoint(x: rect.maxX - curlSize * 0.7, y: rect.maxY - curlSize * 0.15),
+                        control: CGPoint(x: rect.maxX - curlSize * 0.6, y: rect.maxY - curlSize * 0.6)
+                    )
+                }
+                .stroke(style: StrokeStyle(lineWidth: strokeWidth * 0.7, lineCap: .round))
+
+                // Two grommets at top
+                let grommetSpacing = size * 0.28
+                let centerX = size / 2
+
+                // Left grommet
+                Circle()
+                    .stroke(lineWidth: strokeWidth)
+                    .frame(width: grommetRadius * 2, height: grommetRadius * 2)
+                    .position(x: centerX - grommetSpacing, y: grommetY)
+
+                // Right grommet
+                Circle()
+                    .stroke(lineWidth: strokeWidth)
+                    .frame(width: grommetRadius * 2, height: grommetRadius * 2)
+                    .position(x: centerX + grommetSpacing, y: grommetY)
+
+                // Content dashes in middle
+                let dashY = size * 0.55
+                let dashWidth = size * 0.08
+                let dashSpacing = size * 0.12
+
+                ForEach(0..<3, id: \.self) { i in
+                    RoundedRectangle(cornerRadius: strokeWidth / 2)
+                        .frame(width: dashWidth, height: strokeWidth)
+                        .position(
+                            x: centerX + CGFloat(i - 1) * dashSpacing,
+                            y: dashY
+                        )
+                }
+            }
         }
     }
 }

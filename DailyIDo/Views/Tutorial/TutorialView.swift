@@ -43,11 +43,11 @@ struct TutorialView: View {
             TutorialStep(
                 icon: "bell",
                 title: "Set Reminders",
-                description: "Tap the bell icon to save a tip to your Apple Reminders so you won't forget important tasks."
+                description: "Tap the bell icon to save a tip to your Apple Reminders so you remember important tasks."
             ),
             TutorialStep(
                 icon: "calendar.badge.clock",
-                title: "Catch Up Time",
+                title: "Test it Out!",
                 description: "We're starting you a few days back so you can swipe through and catch up to today. Each day unlocks a new wedding tip!"
             )
         ]
@@ -82,7 +82,7 @@ struct TutorialView: View {
                         }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    .frame(height: 320)
+                    .frame(minHeight: 320, maxHeight: 400)
 
                     // Page indicator
                     HStack(spacing: 8) {
@@ -166,10 +166,10 @@ struct TutorialView: View {
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .padding(.horizontal, 24)
-                .frame(minHeight: 80, alignment: .top)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 16)
-        .frame(height: 300)
+        .frame(minHeight: 300)
     }
 
     private func dismissTutorial() {

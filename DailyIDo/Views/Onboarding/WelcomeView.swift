@@ -31,9 +31,9 @@ struct WelcomeView: View {
                             .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
                             .padding(.top, 10)
 
-                        // "We're Heather & Jamie!"
-                        Text("We're Heather & Jamie!")
-                            .font(.custom("CormorantGaramond-Bold", size: 22))
+                        // "We're Jamie & Heather!"
+                        Text("We're Jamie & Heather!")
+                            .font(.custom("CormorantGaramond-Bold", size: 28))
                             .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
                             .padding(.top, 2)
 
@@ -58,19 +58,20 @@ struct WelcomeView: View {
 
                         // Signatures
                         HStack(spacing: 14) {
-                            Image("heather_signature")
+                            Image("jamie_signature")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(height: 48)
+                                .frame(height: 58)
+                                .offset(y: 4)
 
                             Image(systemName: "heart.fill")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color(hex: Constants.Colors.accent))
 
-                            Image("jamie_signature")
+                            Image("heather_signature")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(height: 58)
+                                .frame(height: 48)
                         }
                         .padding(.top, 20)
                         .padding(.bottom, 16)

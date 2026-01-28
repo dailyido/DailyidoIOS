@@ -1,13 +1,16 @@
 import SwiftUI
 import PhotosUI
+import WebKit
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @State private var showMeetThePlanners = false
+    @State private var showFeedbackForm = false
     @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isDatePickerExpanded = false
     var onDone: (() -> Void)?
+    var onRestartTutorial: (() -> Void)?
 
     private let accentColor = Color(hex: Constants.Colors.accent)
 
@@ -71,6 +74,8 @@ struct SettingsView: View {
                                                let image = UIImage(data: data) {
                                                 couplePhoto = image
                                                 saveCouplePhoto(image)
+                                                // Track couple photo update analytics
+                                                AnalyticsService.shared.logCouplePhotoUpdated()
                                             }
                                         }
                                     }
@@ -191,29 +196,6 @@ struct SettingsView: View {
                             }
                         }
 
-                        // Save Button
-                        PrimaryButton(
-                            title: viewModel.isSaving ? "Saving..." : "Save Changes",
-                            isLoading: viewModel.isSaving
-                        ) {
-                            Task {
-                                await viewModel.saveChanges()
-                            }
-                        }
-                        .padding(.horizontal, 16)
-
-                        // Success Message
-                        if viewModel.showSuccess {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                Text("Changes saved successfully!")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.green)
-                            }
-                            .transition(.opacity)
-                        }
-
                         // Actions Section
                         SettingsSection(title: "Actions") {
                             VStack(spacing: 0) {
@@ -221,7 +203,28 @@ struct SettingsView: View {
                                     icon: "person.2.fill",
                                     title: "Meet the Planners"
                                 ) {
+                                    AnalyticsService.shared.logMeetThePlannersOpened()
                                     showMeetThePlanners = true
+                                }
+
+                                Divider()
+                                    .padding(.leading, 44)
+
+                                SettingsActionRow(
+                                    icon: "bubble.left.and.bubble.right.fill",
+                                    title: "Give Us Feedback!"
+                                ) {
+                                    showFeedbackForm = true
+                                }
+
+                                Divider()
+                                    .padding(.leading, 44)
+
+                                SettingsActionRow(
+                                    icon: "play.circle.fill",
+                                    title: "Restart Tutorial"
+                                ) {
+                                    onRestartTutorial?()
                                 }
 
                                 Divider()
@@ -232,6 +235,18 @@ struct SettingsView: View {
                                     title: "Share App",
                                     action: viewModel.shareApp
                                 )
+
+                                Divider()
+                                    .padding(.leading, 44)
+
+                                SettingsActionRow(
+                                    icon: "envelope.fill",
+                                    title: "Contact Us"
+                                ) {
+                                    if let url = URL(string: "mailto:1415.jamie@gmail.com") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }
 
                                 Divider()
                                     .padding(.leading, 44)
@@ -284,10 +299,18 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(viewModel.hasUnsavedChanges ? "Save" : "Done") {
                         HapticManager.shared.buttonTap()
-                        onDone?()
+                        if viewModel.hasUnsavedChanges {
+                            Task {
+                                await viewModel.saveChanges()
+                                onDone?()
+                            }
+                        } else {
+                            onDone?()
+                        }
                     }
+                    .fontWeight(viewModel.hasUnsavedChanges ? .semibold : .regular)
                     .foregroundColor(Color(hex: Constants.Colors.accent))
                 }
             }
@@ -301,6 +324,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showMeetThePlanners) {
                 MeetThePlannersView()
+            }
+            .sheet(isPresented: $showFeedbackForm) {
+                FeedbackFormView()
             }
         }
     }
@@ -383,6 +409,55 @@ struct SettingsActionRow: View {
             .padding(.vertical, 14)
         }
         .disabled(isLoading)
+    }
+}
+
+// MARK: - Feedback Form WebView
+
+struct FeedbackFormView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            FeedbackWebView(url: URL(string: "https://Superforms.co/form/051c1779-e910-40cf-81f6-53b480b4faaa")!)
+                .navigationTitle("Give Us Feedback")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
+                        .foregroundColor(Color(hex: Constants.Colors.accent))
+                    }
+                }
+        }
+    }
+}
+
+struct FeedbackWebView: UIViewRepresentable {
+    let url: URL
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.allowsInlineMediaPlayback = true
+        configuration.mediaTypesRequiringUserActionForPlayback = []
+
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.uiDelegate = context.coordinator
+        webView.load(URLRequest(url: url))
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
+
+    class Coordinator: NSObject, WKUIDelegate {
+        func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+            decisionHandler(.grant)
+        }
     }
 }
 

@@ -60,8 +60,8 @@ struct PlanRevealView: View {
         VStack(spacing: 8) {
             // Names
             Text("\(viewModel.name) & \(viewModel.partnerName)")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(secondaryColor)
+                .font(.custom("CormorantGaramond-Bold", size: 28))
+                .foregroundColor(primaryColor)
 
             // Days countdown
             Text("\(viewModel.daysUntilWedding) Days to Go!")

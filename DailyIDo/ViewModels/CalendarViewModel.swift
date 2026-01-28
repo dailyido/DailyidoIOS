@@ -23,6 +23,7 @@ final class CalendarViewModel: ObservableObject {
     // MARK: - Tip Cache
     private var tipCache: [Int: Tip] = [:]
     private var cacheCreatedAtDay: Int?  // Track when cache was created to invalidate on day change
+    private var cachedWeddingDate: Date?  // Track wedding date to detect changes from settings
 
     // Velocity tracking
     private var lastDragOffset: CGFloat = 0
@@ -35,6 +36,30 @@ final class CalendarViewModel: ObservableObject {
     private let subscriptionService = SubscriptionService.shared
 
     var user: User? { authService.currentUser }
+
+    // MARK: - Free Trial Logic
+
+    /// Days since the user first opened the app
+    var daysSinceFirstUse: Int {
+        guard let firstOpenDate = UserDefaults.standard.object(forKey: Constants.UserDefaultsKeys.firstAppOpenDate) as? Date else {
+            return 0
+        }
+        return Calendar.current.dateComponents([.day], from: firstOpenDate, to: Date()).day ?? 0
+    }
+
+    /// Whether the free trial has ended (after 3 days of use)
+    var isFreeTrialEnded: Bool {
+        // If subscribed, trial doesn't matter
+        if user?.isSubscribed == true || subscriptionService.isSubscribed {
+            return false
+        }
+        return daysSinceFirstUse > Constants.freeTrialDays
+    }
+
+    /// Whether the user is subscribed (for UI elements like crown badge)
+    var isUserSubscribed: Bool {
+        user?.isSubscribed == true || subscriptionService.isSubscribed
+    }
 
     // MARK: - Computed Properties
 
@@ -56,15 +81,76 @@ final class CalendarViewModel: ObservableObject {
     }
 
     // Can go back (swipe right) to see tips for days further from wedding
-    // Users can always browse backwards through available tips
     var canGoBack: Bool {
-        // Can go back as long as there are more tips available (up to 730 days / 2 years out)
-        return displayedDaysOut < 730
+        // Subscribed users can go back up to 800 days
+        if user?.isSubscribed == true || subscriptionService.isSubscribed {
+            return displayedDaysOut < 800
+        }
+
+        // Free users can only see 7 days back from signup day
+        // Use initialDaysUntilWedding if available, otherwise use actualDaysUntilWedding as fallback
+        let startingDay = user?.initialDaysUntilWedding ?? actualDaysUntilWedding
+        let maxDaysBack = startingDay + Constants.freeUserMaxDaysBack
+
+        print("📋 [CanGoBack] displayedDaysOut: \(displayedDaysOut), startingDay: \(startingDay), maxDaysBack: \(maxDaysBack), canGoBack: \(displayedDaysOut < maxDaysBack)")
+
+        return displayedDaysOut < maxDaysBack
+    }
+
+    // Check if free user is at the swipe back limit (for showing paywall)
+    var isAtSwipeBackLimit: Bool {
+        // Subscribed users have no limit
+        if user?.isSubscribed == true || subscriptionService.isSubscribed {
+            return false
+        }
+
+        let startingDay = user?.initialDaysUntilWedding ?? actualDaysUntilWedding
+        let maxDaysBack = startingDay + Constants.freeUserMaxDaysBack
+
+        return displayedDaysOut >= maxDaysBack
     }
 
     // Number of pages that can be torn to catch up
     var pagesToCatchUp: Int {
         max(0, displayedDaysOut - actualDaysUntilWedding)
+    }
+
+    // Should show "Go to Today" button (more than 5 days back)
+    var shouldShowGoToToday: Bool {
+        displayedDaysOut > actualDaysUntilWedding + 5
+    }
+
+    // Jump directly to today's tip
+    func jumpToToday() {
+        displayedDaysOut = actualDaysUntilWedding
+        updateCurrentTip()
+        Task {
+            await saveLastViewedDay(displayedDaysOut)
+        }
+    }
+
+    /// Check if user can swipe (free trial still active or subscribed)
+    /// Shows hard paywall if trial ended
+    func checkAndShowPaywallIfNeeded() async -> Bool {
+        // If subscribed, always allow
+        if user?.isSubscribed == true || subscriptionService.isSubscribed {
+            return true
+        }
+
+        // Check if free trial has ended
+        if isFreeTrialEnded {
+            print("📋 [Paywall] Free trial ended! Days since first use: \(daysSinceFirstUse)")
+            await subscriptionService.showHardPaywall()
+
+            // After paywall, check if they subscribed
+            if subscriptionService.isSubscribed {
+                return true
+            }
+            return false
+        }
+
+        print("📋 [Paywall] Free trial active. Day \(daysSinceFirstUse + 1) of \(Constants.freeTrialDays + 1)")
+        return true
     }
 
     // Message shown when user can't tear (on current day)
@@ -115,7 +201,9 @@ final class CalendarViewModel: ObservableObject {
         // Clear tip cache on each load to ensure fresh calculations
         // This is important when the actual day has changed since last session
         tipCache.removeAll()
+        IllustrationURLCache.shared.clear()
         cacheCreatedAtDay = actualDaysUntilWedding
+        cachedWeddingDate = user?.weddingDate
 
         print("DEBUG CalendarVM: 🔴🔴🔴 loadData started - CACHE CLEARED, cacheCreatedAtDay=\(actualDaysUntilWedding) 🔴🔴🔴")
         print("DEBUG CalendarVM: user = \(String(describing: user))")
@@ -152,15 +240,35 @@ final class CalendarViewModel: ObservableObject {
         print("DEBUG CalendarVM: calculateInitialPosition - user.lastViewedDay = \(String(describing: user.lastViewedDay))")
         print("DEBUG CalendarVM: calculateInitialPosition - actualDaysUntilWedding = \(actualDaysUntilWedding)")
 
-        if let lastViewedDay = user.lastViewedDay {
+        // Check if this is a new calendar day since last use
+        let isNewDay: Bool
+        if let lastDate = UserDefaults.standard.object(forKey: Constants.UserDefaultsKeys.lastViewedDate) as? Date {
+            isNewDay = !Calendar.current.isDateInToday(lastDate)
+            print("DEBUG CalendarVM: lastViewedDate = \(lastDate), isNewDay = \(isNewDay)")
+        } else {
+            isNewDay = true  // First time use
+            print("DEBUG CalendarVM: no lastViewedDate found, treating as new day")
+        }
+
+        if isNewDay {
+            // New day: reset to yesterday so user swipes to see today
+            displayedDaysOut = actualDaysUntilWedding + 1
+            isFirstDay = user.lastViewedDay == nil  // Only true for first-time users
+            print("DEBUG CalendarVM: new day - resetting to yesterday = \(displayedDaysOut)")
+
+            Task {
+                await saveLastViewedDay(displayedDaysOut)
+            }
+        } else if let lastViewedDay = user.lastViewedDay {
+            // Same day: restore saved position
             displayedDaysOut = lastViewedDay
             isFirstDay = false
-            print("DEBUG CalendarVM: using lastViewedDay = \(lastViewedDay)")
+            print("DEBUG CalendarVM: same day - using lastViewedDay = \(lastViewedDay)")
         } else {
-            // First time user - start 3 days back so they can swipe through a few tips
-            displayedDaysOut = actualDaysUntilWedding + 3
+            // Fallback: start at yesterday
+            displayedDaysOut = actualDaysUntilWedding + 1
             isFirstDay = true
-            print("DEBUG CalendarVM: first time user, setting displayedDaysOut = \(displayedDaysOut)")
+            print("DEBUG CalendarVM: fallback - setting displayedDaysOut = \(displayedDaysOut)")
 
             Task {
                 await saveLastViewedDay(displayedDaysOut)
@@ -170,10 +278,29 @@ final class CalendarViewModel: ObservableObject {
 
     /// Call this when the app becomes active to refresh if needed
     func refreshIfNeeded() {
-        // Check if the actual day has changed since cache was created
+        // Check if the wedding date changed (user updated in settings)
+        if let currentWeddingDate = user?.weddingDate,
+           let cachedDate = cachedWeddingDate,
+           !Calendar.current.isDate(currentWeddingDate, inSameDayAs: cachedDate) {
+            print("DEBUG CalendarVM: 🔴 refreshIfNeeded - wedding date changed from \(cachedDate) to \(currentWeddingDate), jumping to today")
+            tipCache.removeAll()
+            IllustrationURLCache.shared.clear()
+            cachedWeddingDate = currentWeddingDate
+            cacheCreatedAtDay = actualDaysUntilWedding
+            // Jump to today based on new wedding date
+            displayedDaysOut = actualDaysUntilWedding
+            updateCurrentTip()
+            Task {
+                await saveLastViewedDay(displayedDaysOut)
+            }
+            return
+        }
+
+        // Check if the actual day has changed since cache was created (midnight crossing)
         if let cacheDay = cacheCreatedAtDay, cacheDay != actualDaysUntilWedding {
             print("DEBUG CalendarVM: 🔴 refreshIfNeeded - day changed from \(cacheDay) to \(actualDaysUntilWedding), clearing cache")
             tipCache.removeAll()
+            IllustrationURLCache.shared.clear()
             cacheCreatedAtDay = actualDaysUntilWedding
             updateCurrentTip()
         }
@@ -198,6 +325,13 @@ final class CalendarViewModel: ObservableObject {
         // Cache current tip and pre-cache nearby tips
         if let tip = tip {
             tipCache[displayedDaysOut] = tip
+
+            // Track tip viewed analytics
+            AnalyticsService.shared.logTipViewed(
+                tipId: tip.id,
+                dayNumber: displayedDaysOut,
+                isFunTip: tip.funTip
+            )
         }
         precacheNearbyTips()
     }
@@ -263,7 +397,10 @@ final class CalendarViewModel: ObservableObject {
 
     // Pre-cache illustration image for a tip
     private func precacheImage(for tip: Tip) {
-        guard let urlString = RandomIllustrationService.shared.getIllustrationUrl(for: tip),
+        // First, cache the URL in IllustrationURLCache to ensure stability
+        IllustrationURLCache.shared.preCache(tip: tip)
+
+        guard let urlString = IllustrationURLCache.shared.getURL(for: tip),
               let url = URL(string: urlString) else {
             return
         }
@@ -382,10 +519,37 @@ final class CalendarViewModel: ObservableObject {
         let shouldGoBack = translation > 0 && canGoBack &&
             (abs(translation) > minSwipeDistance || abs(velocity) > velocityThreshold)
 
+        // Check if user is trying to go back but hit the free user limit
+        let tryingToGoBackPastLimit = translation > 0 && !canGoBack && isAtSwipeBackLimit &&
+            (abs(translation) > minSwipeDistance || abs(velocity) > velocityThreshold)
+
         if shouldCompleteTear {
-            completeTear()
+            // Check paywall before completing tear
+            Task {
+                let canProceed = await checkAndShowPaywallIfNeeded()
+                await MainActor.run {
+                    if canProceed {
+                        completeTear()
+                    } else {
+                        cancelTear()
+                    }
+                }
+            }
         } else if shouldGoBack {
             completeGoBack()
+        } else if tryingToGoBackPastLimit {
+            // Show paywall for free users hitting swipe back limit
+            Task {
+                await subscriptionService.showSwipeBackLimitPaywall()
+                await MainActor.run {
+                    // If they subscribed, allow the swipe
+                    if subscriptionService.isSubscribed {
+                        completeGoBack()
+                    } else {
+                        cancelTear()
+                    }
+                }
+            }
         } else {
             cancelTear()
         }
@@ -396,6 +560,11 @@ final class CalendarViewModel: ObservableObject {
     private func completeTear() {
         guard !isTearing else { return }
         isTearing = true
+
+        // Track calendar swipe analytics
+        let fromDay = displayedDaysOut
+        let toDay = displayedDaysOut - 1
+        AnalyticsService.shared.logCalendarSwiped(direction: "left", fromDay: fromDay, toDay: toDay)
 
         HapticManager.shared.tearComplete()
 
@@ -446,23 +615,21 @@ final class CalendarViewModel: ObservableObject {
 
     // Handle async tear operations separately to avoid blocking UI
     private func handleTearPageAsync(nextDaysOut: Int) async {
-        guard let user = user else { return }
+        guard let user = user else {
+            print("📋 [Calendar] No user found")
+            return
+        }
 
         let mostAdvancedDay = user.lastViewedDay ?? actualDaysUntilWedding
         let isNewTip = nextDaysOut < mostAdvancedDay
 
-        // Check paywall for new tips
-        if isNewTip && !user.isSubscribed && !subscriptionService.isSubscribed {
-            let newTearsCount = user.tipsViewedCount + 1
-
-            if newTearsCount > Constants.freeTipLimit {
-                await subscriptionService.showTipLimitPaywall()
-                // Note: If they didn't subscribe, we've already shown them the tip
-                // The paywall will appear next time they try to tear
-            }
-
-            await updateTearsCount(newTearsCount)
-        }
+        print("📋 [Calendar] ========================================")
+        print("📋 [Calendar] nextDaysOut: \(nextDaysOut)")
+        print("📋 [Calendar] mostAdvancedDay: \(mostAdvancedDay)")
+        print("📋 [Calendar] isNewTip: \(isNewTip)")
+        print("📋 [Calendar] daysSinceFirstUse: \(daysSinceFirstUse)")
+        print("📋 [Calendar] freeTrialDays: \(Constants.freeTrialDays)")
+        print("📋 [Calendar] ========================================")
 
         // Save progress
         if isNewTip {
@@ -481,6 +648,11 @@ final class CalendarViewModel: ObservableObject {
     private func completeGoBack() {
         guard !isTearing else { return }
         isTearing = true
+
+        // Track calendar swipe analytics
+        let fromDay = displayedDaysOut
+        let toDay = displayedDaysOut + 1
+        AnalyticsService.shared.logCalendarSwiped(direction: "right", fromDay: fromDay, toDay: toDay)
 
         HapticManager.shared.buttonTap()
 
@@ -612,6 +784,9 @@ final class CalendarViewModel: ObservableObject {
         )
 
         try? await authService.updateUser(updatedUser, silent: true)
+
+        // Save the date when position was saved (for new-day reset logic)
+        UserDefaults.standard.set(Date(), forKey: Constants.UserDefaultsKeys.lastViewedDate)
     }
 
     // MARK: - Other Actions

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B4152362F23F4AC0055B285 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4152352F23F4AC0055B285 /* AnalyticsService.swift */; };
+		0B4152382F2A670F0055B285 /* URLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4152372F2A670F0055B285 /* URLHelper.swift */; };
 		0B55C31C2F156CEF002450AC /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 0B55C31B2F156CEF002450AC /* Configuration.storekit */; };
 		0B55C31E2F156E65002450AC /* RCPurchaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55C31D2F156E65002450AC /* RCPurchaseController.swift */; };
 		0BE0DB7C2F08724900E9A51F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = G100000001 /* Supabase */; };
@@ -29,7 +31,6 @@
 		A100000009 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000009 /* AuthService.swift */; };
 		A100000010 /* TipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000010 /* TipService.swift */; };
 		A100000011 /* StreakService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011 /* StreakService.swift */; };
-		A100000060 /* RandomIllustrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000060 /* RandomIllustrationService.swift */; };
 		A100000012 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012 /* NotificationService.swift */; };
 		A100000013 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013 /* LocationService.swift */; };
 		A100000014 /* SunsetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000014 /* SunsetService.swift */; };
@@ -53,8 +54,6 @@
 		A100000032 /* DatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000032 /* DatePickerView.swift */; };
 		A100000033 /* LocationInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000033 /* LocationInputView.swift */; };
 		A100000034 /* TentedQuestionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000034 /* TentedQuestionView.swift */; };
-		A100000061 /* ReferralSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000061 /* ReferralSourceView.swift */; };
-		A100000062 /* LongEngagementTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000062 /* LongEngagementTutorialView.swift */; };
 		A100000036 /* NotificationPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000036 /* NotificationPermissionView.swift */; };
 		A100000037 /* PreparednessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000037 /* PreparednessView.swift */; };
 		A100000038 /* RatingRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000038 /* RatingRequestView.swift */; };
@@ -68,6 +67,9 @@
 		A100000046 /* ChecklistItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000046 /* ChecklistItemView.swift */; };
 		A100000047 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000047 /* SettingsView.swift */; };
 		A100000048 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B100000048 /* Assets.xcassets */; };
+		A100000060 /* RandomIllustrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000060 /* RandomIllustrationService.swift */; };
+		A100000061 /* ReferralSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000061 /* ReferralSourceView.swift */; };
+		A100000062 /* LongEngagementTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000062 /* LongEngagementTutorialView.swift */; };
 		CC304584A069FE27C4B37244 /* IntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027044510D463EB67B88B213 /* IntroView.swift */; };
 		E13FCC8D4C401ED648FF9D55 /* CouplePhotoUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */; };
 		E3E8E858039347BDFC0F3B4B /* MeetThePlannersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */; };
@@ -77,6 +79,8 @@
 
 /* Begin PBXFileReference section */
 		027044510D463EB67B88B213 /* IntroView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IntroView.swift; sourceTree = "<group>"; };
+		0B4152352F23F4AC0055B285 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		0B4152372F2A670F0055B285 /* URLHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLHelper.swift; sourceTree = "<group>"; };
 		0B55C31B2F156CEF002450AC /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		0B55C31D2F156E65002450AC /* RCPurchaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCPurchaseController.swift; sourceTree = "<group>"; };
 		0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Regular.ttf"; sourceTree = "<group>"; };
@@ -99,7 +103,6 @@
 		B100000009 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		B100000010 /* TipService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipService.swift; sourceTree = "<group>"; };
 		B100000011 /* StreakService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakService.swift; sourceTree = "<group>"; };
-		B100000060 /* RandomIllustrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomIllustrationService.swift; sourceTree = "<group>"; };
 		B100000012 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		B100000013 /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
 		B100000014 /* SunsetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunsetService.swift; sourceTree = "<group>"; };
@@ -123,8 +126,6 @@
 		B100000032 /* DatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerView.swift; sourceTree = "<group>"; };
 		B100000033 /* LocationInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationInputView.swift; sourceTree = "<group>"; };
 		B100000034 /* TentedQuestionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TentedQuestionView.swift; sourceTree = "<group>"; };
-		B100000061 /* ReferralSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralSourceView.swift; sourceTree = "<group>"; };
-		B100000062 /* LongEngagementTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongEngagementTutorialView.swift; sourceTree = "<group>"; };
 		B100000036 /* NotificationPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionView.swift; sourceTree = "<group>"; };
 		B100000037 /* PreparednessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreparednessView.swift; sourceTree = "<group>"; };
 		B100000038 /* RatingRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingRequestView.swift; sourceTree = "<group>"; };
@@ -139,6 +140,9 @@
 		B100000047 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B100000048 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B100000049 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B100000060 /* RandomIllustrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomIllustrationService.swift; sourceTree = "<group>"; };
+		B100000061 /* ReferralSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralSourceView.swift; sourceTree = "<group>"; };
+		B100000062 /* LongEngagementTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongEngagementTutorialView.swift; sourceTree = "<group>"; };
 		DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CouplePhotoUploadView.swift; path = DailyIDo/Views/Onboarding/CouplePhotoUploadView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -162,13 +166,13 @@
 			children = (
 				3086DA4D425A2489A41FE768 /* TutorialView.swift */,
 			);
-			name = Tutorial;
 			path = Tutorial;
 			sourceTree = "<group>";
 		};
 		D100000001 = {
 			isa = PBXGroup;
 			children = (
+				0B4152372F2A670F0055B285 /* URLHelper.swift */,
 				0BE0DB822F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf */,
 				0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */,
 				0B55C31B2F156CEF002450AC /* Configuration.storekit */,
@@ -228,6 +232,7 @@
 		D100000006 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				0B4152352F23F4AC0055B285 /* AnalyticsService.swift */,
 				B100000008 /* SupabaseService.swift */,
 				B100000009 /* AuthService.swift */,
 				B100000010 /* TipService.swift */,
@@ -315,7 +320,6 @@
 				B100000038 /* RatingRequestView.swift */,
 				B100000039 /* LoadingView.swift */,
 				B100000040 /* PlanRevealView.swift */,
-				DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */,
 				027044510D463EB67B88B213 /* IntroView.swift */,
 			);
 			path = Onboarding;
@@ -345,7 +349,6 @@
 			isa = PBXGroup;
 			children = (
 				B100000047 /* SettingsView.swift */,
-				5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -479,11 +482,13 @@
 				A100000040 /* PlanRevealView.swift in Sources */,
 				A100000041 /* CalendarView.swift in Sources */,
 				A100000042 /* TipCardView.swift in Sources */,
+				0B4152382F2A670F0055B285 /* URLHelper.swift in Sources */,
 				A100000043 /* TearAwayModifier.swift in Sources */,
 				A100000044 /* ChecklistView.swift in Sources */,
 				A100000045 /* ChecklistGroupView.swift in Sources */,
 				A100000046 /* ChecklistItemView.swift in Sources */,
 				A100000047 /* SettingsView.swift in Sources */,
+				0B4152362F23F4AC0055B285 /* AnalyticsService.swift in Sources */,
 				5F3DE165828436611C8A6F28 /* InstagramSharingService.swift in Sources */,
 				E3E8E858039347BDFC0F3B4B /* MeetThePlannersView.swift in Sources */,
 				E13FCC8D4C401ED648FF9D55 /* CouplePhotoUploadView.swift in Sources */,
@@ -624,7 +629,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;
@@ -655,7 +660,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;

@@ -22,14 +22,14 @@ struct NameInputView: View {
                     }
 
                     // Title
-                    Text("What's your name?")
+                    Text("What's your first name?")
                         .font(.custom("CormorantGaramond-Bold", size: 34))
                         .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
                         .multilineTextAlignment(.center)
                         .padding(.top, 20)
 
                     // Input field
-                    TextInputField(placeholder: "Your name", text: $viewModel.name, autoFocus: true)
+                    TextInputField(placeholder: "Your first name", text: $viewModel.name, autoFocus: true)
                         .padding(.horizontal, 24)
                         .padding(.top, 24)
 

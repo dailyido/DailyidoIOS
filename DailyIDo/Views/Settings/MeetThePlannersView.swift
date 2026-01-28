@@ -21,6 +21,7 @@ struct PlannerInfo: Identifiable {
     let name: String
     let photo: String
     let signature: String
+    let signatureHeight: CGFloat
     let bio: String
     let instagramHandle: String
 
@@ -48,14 +49,16 @@ struct MeetThePlannersView: View {
             name: "Heather",
             photo: "heather_about",
             signature: "heather_signature",
-            bio: "Hi there! I'm so happy to meet you! I was born and raised on Cape Cod, where I now live with my husband, Matt, and our two boys, Wyatt and Levi. Being mom of two busy boys means I'm calm under pressure, quick on my feet, and very comfortable handling a little chaos, all skills that translate extremely well to wedding days.\n\nWe love spending time outdoors—whether it's peaceful cranberry bog walks, snowmobiling through the mountains in Maine, or tending to our apple trees at home together. Being a wedding planner is truly the icing on the cake, and I feel so lucky to love what I do every single day.",
+            signatureHeight: 40,
+            bio: "Hi there! I'm so happy to meet you! I was born and raised on Cape Cod, where I now live with my husband, Matt, and our two boys, Wyatt and Levi. Being a mom of two busy boys means I'm calm under pressure, quick on my feet, and very comfortable handling a little chaos, all skills that translate extremely well to wedding days.\n\nWe love spending time outdoors, whether it's peaceful cranberry bog walks, snowmobiling through the mountains in Maine, or tending to our apple trees at home together. Being a wedding planner is truly the icing on the cake, and I feel so lucky to love what I do every single day.",
             instagramHandle: "HeatherRumulWeddings"
         ),
         PlannerInfo(
             name: "Jamie",
-            photo: "jamie_about",
+            photo: "jamie_new",
             signature: "jamie_signature",
-            bio: "Hi! I am so excited to meet you! I have been in the wedding industry on Cape Cod since 2006 and started my own wedding planning business in 2007, Cape Cod Celebrations, which I continue to run today with an amazing group of talented women. I was born and raised on Cape Cod, where I now live with my husband, Neill, our son, Jack and two cats. We love traveling, playing pickleball and spending time with friends and family.",
+            signatureHeight: 55,
+            bio: "Hi! I'm so excited to meet you! I've been part of the Cape Cod wedding industry since 2006 and founded my wedding planning business, Cape Cod Celebrations, in 2007. Today, I continue to run the company alongside an incredible team of talented women who share a passion for creating meaningful, beautifully executed celebrations.\n\nBorn and raised on Cape Cod, I'm proud to call it home, where I live with my husband, Neill, and our son, Jack. When I am not planning or working weddings, we love traveling, playing pickleball, and spending time with friends and family.",
             instagramHandle: "CapeCodCelebrations"
         )
     ]
@@ -174,7 +177,7 @@ struct PlannerPageView: View {
                     Image(planner.signature)
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 40)
+                        .frame(height: planner.signatureHeight)
                         .padding(.top, 14)
 
                     // Instagram button
@@ -214,11 +217,9 @@ struct OurStoryPageView: View {
     private let secondaryText = Color(hex: Constants.Colors.secondaryText)
 
     private let storyText = """
-Jamie and Heather first met in 2013 at a wedding on Cape Cod. What began as a chance meeting (on the hottest wedding day of the season) quickly turned into a meaningful connection, sparked by a shared love for celebrations, thoughtful details, and the magic of wedding days.
+Jamie and Heather first connected in 2013 while working a wedding together on Cape Cod - Jamie as a planner and Heather as a Event Specialist. Over the next 5 years they bonded over their shared love of celebrations, thoughtful details, and the magic of wedding days. In 2019, Jamie invited Heather to join the Cape Cod Celebrations team, and the rest is history.
 
-Fast forward a few years down the road, Heather joined the Cape Cod Celebrations team, and their shared passion for weddings and seamless collaboration have made them an inseparable duo.
-
-United by a love of weddings, well-run timelines, and a good laugh, they quickly became the kind of planners who just get it. Together, they bring calm, creativity, and plenty of personality to every wedding day.
+Together, they're excited to bring their passion for weddings, obsession with seamless timelines, calm demeanors, fun personalities, and endless creativity straight to your phone each day with thoughtfully curated tips inspired by their own planning journeys.
 """
 
     // Calculate image size based on screen height

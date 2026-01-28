@@ -71,9 +71,7 @@ struct TipCardView: View {
                     // Affiliate button (if available)
                     if let tip = tip, let affiliateUrl = tip.affiliateUrl, !affiliateUrl.isEmpty {
                         Button(action: {
-                            if let url = URL(string: affiliateUrl) {
-                                UIApplication.shared.open(url)
-                            }
+                            URLHelper.openSmartURL(affiliateUrl)
                         }) {
                             HStack {
                                 Text(tip.affiliateButtonText ?? "Shop Now")

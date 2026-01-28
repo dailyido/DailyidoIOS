@@ -100,8 +100,9 @@ enum MonthCategory: String, CaseIterable {
     case sixToNineMonths = "6-9 months"
     case threeToSixMonths = "3-6 months"
     case oneToThreeMonths = "1-3 months"
-    case finalMonth = "Final month"
+    case finalMonth = "Final Month"
     case weddingWeek = "Wedding week"
+    case postWedding = "Post Wedding"
 
     static func category(forDaysOut days: Int) -> MonthCategory {
         switch days {
@@ -111,7 +112,8 @@ enum MonthCategory: String, CaseIterable {
         case 90..<180: return .threeToSixMonths
         case 30..<90: return .oneToThreeMonths
         case 8..<30: return .finalMonth
-        default: return .weddingWeek
+        case 0..<8: return .weddingWeek
+        default: return .postWedding  // Negative days = after wedding
         }
     }
 
@@ -124,6 +126,7 @@ enum MonthCategory: String, CaseIterable {
         case .oneToThreeMonths: return 4
         case .finalMonth: return 5
         case .weddingWeek: return 6
+        case .postWedding: return 7
         }
     }
 }

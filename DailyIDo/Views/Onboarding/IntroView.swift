@@ -51,7 +51,7 @@ struct IntroView: View {
                         // Main content - left aligned
                         VStack(alignment: .leading, spacing: 16) {
                             // Main description
-                            Text("This isn't a checklist you'll ignore—it's a daily nudge that keeps you moving forward without the overwhelm.")
+                            Text("This isn't a checklist you'll ignore, it's a daily nudge that keeps you moving forward without feeling overwhelmed.")
                                 .font(.system(size: 17))
                                 .foregroundColor(primaryColor)
                                 .lineSpacing(4)
@@ -67,25 +67,40 @@ struct IntroView: View {
                                 BulletPoint(text: "Zero fluff")
                                 BulletPoint(text: "Exactly what matters right now")
                             }
-
-                            // Calm voice
-                            Text("Think of this as your calm voice in the chaos.")
-                                .font(.custom("CormorantGaramond-SemiBold", size: 20))
-                                .foregroundColor(primaryColor)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.top, 12)
-
-                            // Final call to action text
-                            Text("Open it daily. Do the thing. Get back to living your life.")
-                                .font(.system(size: 15))
-                                .foregroundColor(secondaryText)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.top, 4)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 32)
                         .opacity(showContent ? 1 : 0)
                         .offset(y: showContent ? 0 : 20)
+
+                        // Divider
+                        Rectangle()
+                            .fill(accentColor.opacity(0.3))
+                            .frame(width: 40, height: 2)
+                            .padding(.vertical, 20)
+                            .opacity(showContent ? 1 : 0)
+
+                        // Calm voice - centered
+                        Text("Think of us as your calm voice in the chaos.")
+                            .font(.custom("CormorantGaramond-Bold", size: 24))
+                            .foregroundColor(primaryColor)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 32)
+                            .padding(.top, 4)
+                            .opacity(showContent ? 1 : 0)
+                            .offset(y: showContent ? 0 : 20)
+
+                        // Final call to action text - centered and bigger
+                        Text("Open it daily. Do the thing.\nGet back to living your life.")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundColor(secondaryText)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 32)
+                            .padding(.top, 8)
+                            .opacity(showContent ? 1 : 0)
+                            .offset(y: showContent ? 0 : 20)
 
                         Spacer(minLength: 24)
 

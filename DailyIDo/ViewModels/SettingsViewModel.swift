@@ -18,10 +18,27 @@ final class SettingsViewModel: ObservableObject {
     @Published var errorMessage = ""
     @Published var showSuccess = false
 
+    // Original values to track changes
+    private var originalName = ""
+    private var originalPartnerName = ""
+    private var originalWeddingDate = Date()
+    private var originalWeddingTown = ""
+    private var originalIsTentedWedding = false
+    private var originalEmail = ""
+
     private let authService = AuthService.shared
     private let subscriptionService = SubscriptionService.shared
 
     var user: User? { authService.currentUser }
+
+    var hasUnsavedChanges: Bool {
+        name != originalName ||
+        partnerName != originalPartnerName ||
+        !Calendar.current.isDate(weddingDate, inSameDayAs: originalWeddingDate) ||
+        weddingTown != originalWeddingTown ||
+        isTentedWedding != originalIsTentedWedding ||
+        email != originalEmail
+    }
 
     func loadUserData() {
         guard let user = user else { return }
@@ -34,6 +51,14 @@ final class SettingsViewModel: ObservableObject {
         weddingLongitude = user.weddingLongitude
         isTentedWedding = user.isTentedWedding
         email = user.email ?? ""
+
+        // Store original values to track changes
+        originalName = name
+        originalPartnerName = partnerName
+        originalWeddingDate = weddingDate
+        originalWeddingTown = weddingTown
+        originalIsTentedWedding = isTentedWedding
+        originalEmail = email
     }
 
     func saveChanges() async {
@@ -68,6 +93,9 @@ final class SettingsViewModel: ObservableObject {
             HapticManager.shared.settingsSave()
             showSuccess = true
 
+            // Track profile update analytics
+            AnalyticsService.shared.logProfileUpdated()
+
             // Hide success message after 2 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 self.showSuccess = false
@@ -83,6 +111,9 @@ final class SettingsViewModel: ObservableObject {
     func restorePurchases() async {
         isRestoringPurchases = true
 
+        // Track restore purchases analytics
+        AnalyticsService.shared.logRestorePurchasesTapped()
+
         do {
             try await subscriptionService.restorePurchases()
             HapticManager.shared.success()
@@ -95,8 +126,11 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func shareApp() {
+        // Track share app analytics
+        AnalyticsService.shared.logShareAppTapped()
+
         let shareText = "I'm using Daily I Do to plan my wedding one tip at a time! Check it out."
-        let shareURL = URL(string: "https://apps.apple.com/app/daily-i-do")!
+        let shareURL = URL(string: "https://apps.apple.com/us/app/daily-i-do/id6757710079")!
 
         let activityVC = UIActivityViewController(
             activityItems: [shareText, shareURL],

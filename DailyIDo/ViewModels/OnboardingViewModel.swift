@@ -180,9 +180,12 @@ final class OnboardingViewModel: ObservableObject {
 
             // Identify user in subscription service
             subscriptionService.identifyUser(userId: user.id.uuidString)
+            print("🎯 [Onboarding] Identified user: \(user.id.uuidString)")
 
             // Show onboarding complete paywall and wait for it to complete
+            print("🎯 [Onboarding] About to show onboarding paywall...")
             await subscriptionService.showOnboardingPaywall()
+            print("🎯 [Onboarding] Onboarding paywall flow completed")
 
             HapticManager.shared.success()
         } catch {

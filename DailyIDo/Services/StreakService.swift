@@ -37,6 +37,9 @@ final class StreakService: ObservableObject {
             return
         }
 
+        // Store old streak to detect broken streaks
+        let oldStreak = user.currentStreak
+
         if let last = lastDate {
             if last.isYesterday {
                 // Consecutive day - increment streak
@@ -117,6 +120,14 @@ final class StreakService: ObservableObject {
             self.longestStreak = user.longestStreak
         }
 
+        // Track streak analytics
+        AnalyticsService.shared.logStreakUpdated(current: user.currentStreak, longest: user.longestStreak)
+
+        // Check if streak was broken (reset from > 1 to 1)
+        if oldStreak > 1 && user.currentStreak == 1 {
+            AnalyticsService.shared.logStreakBroken(previousStreak: oldStreak)
+        }
+
         await checkMilestone(streak: user.currentStreak)
     }
 
@@ -124,6 +135,9 @@ final class StreakService: ObservableObject {
         guard let milestone = milestones.first(where: { $0.days == streak }) else {
             return
         }
+
+        // Track milestone analytics
+        AnalyticsService.shared.logStreakMilestone(streak)
 
         await MainActor.run {
             HapticManager.shared.streakMilestone()

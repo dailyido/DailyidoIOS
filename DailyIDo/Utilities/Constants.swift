@@ -15,14 +15,19 @@ enum Constants {
     static let googlePlacesAPIKey = "AIzaSyDAZOWGyD0HzLY9u1neQdV-JYTHjyCkSO4"
 
     // App Configuration
-    static let freeTipLimit = 5
+    static let freeTipLimit = 5  // Legacy - no longer used
+    static let freeTrialDays = 3  // Days of free swiping before hard paywall
+    static let freeUserMaxDaysBack = 7  // Free users can only see 7 days back from signup
     static let dailyNotificationHour = 9
     static let dailyNotificationMinute = 0
 
     // Superwall Events
     enum SuperwallEvents {
         static let onboardingComplete = "onboarding_complete"
-        static let tipLimitReached = "tip_limit_reached"
+        static let tipLimitReached = "tip_limit_reached"  // Legacy - no longer used
+        static let freeTrialEnded = "free_trial_ended"  // Hard paywall after 3 days
+        static let proBadgeTapped = "pro_badge_tapped"  // Crown icon on calendar
+        static let swipeBackLimitReached = "swipe_back_limit_reached"  // Free user tried to swipe back past 7 days
     }
 
     // RevenueCat Entitlements
@@ -37,6 +42,7 @@ enum Constants {
         static let scheduledNotificationIds = "scheduledNotificationIds"
         static let firstAppOpenDate = "firstAppOpenDate"
         static let hasShownInstagramFollowPopup = "hasShownInstagramFollowPopup"
+        static let lastViewedDate = "lastViewedDate"  // Date when calendar position was saved
     }
 
     // Social Links

@@ -97,6 +97,29 @@ struct OnboardingContainerView: View {
         } message: {
             Text(viewModel.errorMessage)
         }
+        .onAppear {
+            // Track onboarding started
+            AnalyticsService.shared.logOnboardingStarted()
+            // Track initial screen
+            if let screen = OnboardingScreen.fromStep(viewModel.currentStep) {
+                AnalyticsService.shared.logOnboardingScreen(screen)
+            }
+        }
+        .onChange(of: viewModel.currentStep) { newStep in
+            // Track screen view
+            if let screen = OnboardingScreen.fromStep(newStep) {
+                AnalyticsService.shared.logOnboardingScreen(screen)
+            }
+            // Track completion if moving forward and previous screen exists
+            let previousStep = newStep - 1
+            if previousStep >= 0, let previousScreen = OnboardingScreen.fromStep(previousStep) {
+                AnalyticsService.shared.logOnboardingScreenCompleted(previousScreen)
+            }
+            // Track onboarding completed when reaching plan reveal
+            if newStep == 13 {
+                AnalyticsService.shared.logOnboardingCompleted()
+            }
+        }
     }
 }
 

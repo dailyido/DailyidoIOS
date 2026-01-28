@@ -50,36 +50,36 @@ struct ChecklistItemView: View {
                 .buttonStyle(PlainButtonStyle())
                 .padding(.top, 2)
 
-                // Content - tappable to expand
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(item.tip.title)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(
-                            item.isCompleted ?
-                            Color(hex: Constants.Colors.secondaryText) :
-                            Color(hex: Constants.Colors.primaryText)
-                        )
-                        .strikethrough(item.isCompleted, color: Color(hex: Constants.Colors.secondaryText))
-
-                    if item.isCompleted, let completedAt = item.completedAt {
-                        Text("Completed \(completedAt.formattedShort)")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
-                    }
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    onExpand()
-                }
-
-                Spacer()
-
-                // Expand button
+                // Content + Chevron - tappable to expand
                 Button(action: onExpand) {
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(hex: Constants.Colors.secondaryText))
-                        .padding(8)
+                    HStack(alignment: .top, spacing: 0) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.tip.title)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(
+                                    item.isCompleted ?
+                                    Color(hex: Constants.Colors.secondaryText) :
+                                    Color(hex: Constants.Colors.buttonPrimary)
+                                )
+                                .strikethrough(item.isCompleted, color: Color(hex: Constants.Colors.secondaryText))
+                                .multilineTextAlignment(.leading)
+
+                            if item.isCompleted, let completedAt = item.completedAt {
+                                Text("Completed \(completedAt.formattedShort)")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
+                            }
+                        }
+
+                        Spacer()
+
+                        // Expand chevron
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                            .padding(8)
+                    }
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -92,7 +92,7 @@ struct ChecklistItemView: View {
                     // Full tip text (supports \n for line breaks)
                     Text(item.tip.tipText.replacingOccurrences(of: "\\n", with: "\n"))
                         .font(.system(size: 15))
-                        .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                        .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
                         .lineSpacing(4)
 
                     // Affiliate button (only if URL exists)
@@ -120,10 +120,10 @@ struct ChecklistItemView: View {
                 .padding(.horizontal, 16)
                 .padding(.leading, 44)
                 .padding(.bottom, 16)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: isExpanded)
+        .clipped()
     }
 }
 

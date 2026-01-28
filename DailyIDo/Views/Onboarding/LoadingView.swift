@@ -193,7 +193,7 @@ struct LoadingView: View {
                     value: showInitial
                 )
 
-            Text("CREATING YOUR PLAN")
+            Text("CREATING YOUR CUSTOM WEDDING TIPS")
                 .font(.system(size: 11, weight: .semibold))
                 .kerning(1.5)
                 .foregroundColor(secondaryColor)

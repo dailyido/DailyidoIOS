@@ -5,6 +5,7 @@ struct CalendarView: View {
 
     @StateObject private var viewModel = CalendarViewModel()
     @StateObject private var streakService = StreakService.shared
+    @StateObject private var subscriptionService = SubscriptionService.shared
     @Environment(\.scenePhase) private var scenePhase
     @State private var showShareOptions = false
     @State private var showInstagramAlert = false
@@ -44,6 +45,22 @@ struct CalendarView: View {
                 VStack(spacing: 0) {
                     // Action buttons
                     HStack(alignment: .bottom, spacing: 4) {
+                        // Pro crown badge for free users (disappears after subscribing)
+                        if !subscriptionService.isSubscribed {
+                            Button(action: {
+                                HapticManager.shared.buttonTap()
+                                Task {
+                                    await subscriptionService.showProBadgePaywall()
+                                }
+                            }) {
+                                Image(systemName: "crown.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
+                            }
+                            .frame(width: 44, height: 44, alignment: .bottom)
+                            .offset(x: 8, y: -8)
+                        }
+
                         Spacer()
 
                         // Reminder button
@@ -69,9 +86,9 @@ struct CalendarView: View {
                         .frame(width: 44, height: 44, alignment: .bottom)
                         .disabled(isSharing)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
-                    .padding(.bottom, 4)
+                    .padding(.leading, 12)
+                    .padding(.trailing, 20)
+                    .offset(y: -8)
 
                     // Calendar card stack
                     GeometryReader { geometry in
@@ -173,6 +190,25 @@ struct CalendarView: View {
                 }
             }
 
+            // "Go to Today" floating button (shows when 6+ days back)
+            if viewModel.shouldShowGoToToday {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        GoToTodayButton {
+                            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                viewModel.jumpToToday()
+                            }
+                        }
+                        .padding(.trailing, 32)
+                        .padding(.bottom, 24)
+                    }
+                }
+                .transition(.scale.combined(with: .opacity))
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.shouldShowGoToToday)
+            }
+
             // Streak celebration popup
             if let milestone = streakService.showingMilestone {
                 CelebrationPopup(milestone: milestone) {
@@ -182,6 +218,10 @@ struct CalendarView: View {
         }
         .task {
             await viewModel.loadData()
+        }
+        .onAppear {
+            // Refresh when returning from settings (e.g., wedding date changed)
+            viewModel.refreshIfNeeded()
         }
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
@@ -328,6 +368,11 @@ struct CalendarView: View {
     private func shareToInstagram() {
         guard !isSharing else { return }
 
+        // Track share analytics
+        if let tip = viewModel.currentTip {
+            AnalyticsService.shared.logShareTapped(tipId: tip.id, platform: "instagram")
+        }
+
         let sharingService = InstagramSharingService.shared
 
         guard sharingService.canShareToInstagram else {
@@ -358,6 +403,11 @@ struct CalendarView: View {
     private func shareToFacebook() {
         guard !isSharing else { return }
 
+        // Track share analytics
+        if let tip = viewModel.currentTip {
+            AnalyticsService.shared.logShareTapped(tipId: tip.id, platform: "facebook")
+        }
+
         let sharingService = InstagramSharingService.shared
 
         guard sharingService.canShareToFacebook else {
@@ -387,6 +437,12 @@ struct CalendarView: View {
 
     private func shareToMessages() {
         guard !isSharing else { return }
+
+        // Track share analytics
+        if let tip = viewModel.currentTip {
+            AnalyticsService.shared.logShareTapped(tipId: tip.id, platform: "messages")
+        }
+
         isSharing = true
 
         Task { @MainActor in
@@ -401,6 +457,12 @@ struct CalendarView: View {
 
     private func shareWithSystemSheet() {
         guard !isSharing else { return }
+
+        // Track share analytics
+        if let tip = viewModel.currentTip {
+            AnalyticsService.shared.logShareTapped(tipId: tip.id, platform: "system_sheet")
+        }
+
         isSharing = true
 
         Task { @MainActor in
@@ -432,6 +494,9 @@ struct CalendarView: View {
 
     private func addToReminders(at date: Date) {
         guard let tip = viewModel.currentTip else { return }
+
+        // Track reminder analytics
+        AnalyticsService.shared.logReminderTapped(tipId: tip.id)
 
         Task {
             let title = "Wedding Tip: \(tip.title)"
@@ -492,6 +557,7 @@ struct CalendarCaughtUpPreview: View {
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
+                .frame(height: 24)
 
             Image(systemName: "clock.fill")
                 .font(.system(size: 60))
@@ -530,6 +596,23 @@ struct CalendarPaperContent: View {
     let canGoBack: Bool
     let statusMessage: String
 
+    /// Process tip text to replace placeholders like XXXX with calculated values
+    private func processedTipText(_ text: String) -> String {
+        var result = text
+
+        // Replace XXXX with sunset time for the user's wedding date/location
+        if result.contains("XXXX"),
+           let user = AuthService.shared.currentUser,
+           let weddingDate = user.weddingDate,
+           let latitude = user.weddingLatitude,
+           let longitude = user.weddingLongitude,
+           let sunsetTime = SunsetService.shared.formattedSunsetTime(for: weddingDate, latitude: latitude, longitude: longitude) {
+            result = result.replacingOccurrences(of: "XXXX", with: sunsetTime)
+        }
+
+        return result
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Scrollable content area (vertical only, allows horizontal pass-through)
@@ -541,7 +624,7 @@ struct CalendarPaperContent: View {
                     // Days countdown
                     Text("\(daysUntilWedding)")
                         .font(.system(size: 80, weight: .regular))
-                        .foregroundColor(Color(hex: Constants.Colors.calendarTextPrimary))
+                        .foregroundColor(Color(hex: "#254059"))
 
                     Text("DAYS UNTIL YOUR WEDDING")
                         .font(.system(size: 10, weight: .bold))
@@ -571,8 +654,8 @@ struct CalendarPaperContent: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(.horizontal, 24)
 
-                            // Tip text from database (supports \n for line breaks)
-                            Text(tip.tipText.replacingOccurrences(of: "\\n", with: "\n"))
+                            // Tip text from database (supports \n for line breaks and XXXX placeholders)
+                            Text(processedTipText(tip.tipText).replacingOccurrences(of: "\\n", with: "\n"))
                                 .font(.system(size: 16, weight: .regular))
                                 .tracking(-0.44)
                                 .lineSpacing(6)
@@ -725,6 +808,25 @@ struct PageCurlCorner: View {
 
 // Calendar header with binding rings
 struct CalendarHeaderView: View {
+    var userName: String? = AuthService.shared.currentUser?.name
+    var partnerName: String? = AuthService.shared.currentUser?.partnerName
+    var weddingDate: Date? = AuthService.shared.currentUser?.weddingDate
+
+    private var coupleNames: String? {
+        guard let name = userName, !name.isEmpty,
+              let partner = partnerName, !partner.isEmpty else {
+            return nil
+        }
+        return "\(name) & \(partner)"
+    }
+
+    private var formattedWeddingDate: String? {
+        guard let date = weddingDate else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        return formatter.string(from: date)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Header background with rings
@@ -732,15 +834,36 @@ struct CalendarHeaderView: View {
                 // Header background
                 Color(hex: Constants.Colors.calendarHeader)
 
-                // Gold binding rings
+                // Gold binding rings and couple names
                 HStack {
                     GoldBindingRing()
-                        .padding(.leading, 40)
+                        .padding(.leading, 20)
+
+                    Spacer()
+
+                    // Couple names and wedding date in center
+                    VStack(spacing: 2) {
+                        if let names = coupleNames {
+                            Text(names)
+                                .font(.custom("Didot-Bold", size: 24))
+                                .tracking(1)
+                                .foregroundColor(.white.opacity(0.95))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                        }
+                        if let dateStr = formattedWeddingDate {
+                            Text(dateStr)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white.opacity(0.7))
+                                .tracking(1)
+                        }
+                    }
+                    .padding(.top, 8)
 
                     Spacer()
 
                     GoldBindingRing()
-                        .padding(.trailing, 40)
+                        .padding(.trailing, 20)
                 }
             }
             .frame(height: 68)
@@ -1151,6 +1274,33 @@ struct CustomTimePickerSheet: View {
             .padding(.bottom, 16)
         }
         .background(Color.white)
+    }
+}
+
+// Floating "Go to Today" button
+struct GoToTodayButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            HapticManager.shared.success()
+            action()
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.right.to.line")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Go to Today")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(Color(hex: Constants.Colors.buttonPrimary))
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            )
+        }
     }
 }
 

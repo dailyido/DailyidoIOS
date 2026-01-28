@@ -1,11 +1,13 @@
 import Foundation
 import UIKit
+import SwiftUI
 
 @MainActor
 final class ChecklistViewModel: ObservableObject {
     @Published var checklistItems: [String: [ChecklistDisplayItem]] = [:]
     @Published var completedTipIds: Set<UUID> = []
     @Published var expandedItemId: UUID?
+    @Published var collapsedSections: Set<String> = []
     @Published var isLoading = true
 
     private let tipService = TipService.shared
@@ -13,6 +15,25 @@ final class ChecklistViewModel: ObservableObject {
     private let authService = AuthService.shared
 
     var user: User? { authService.currentUser }
+
+    // Current days until wedding
+    var daysUntilWedding: Int {
+        guard let weddingDate = user?.weddingDate else { return 365 }
+        return Date().daysUntil(weddingDate)
+    }
+
+    // Get the user's current month category based on days out
+    var currentMonthCategory: MonthCategory {
+        MonthCategory.category(forDaysOut: daysUntilWedding)
+    }
+
+    // Check if a category should be locked (too far in advance)
+    func isCategoryLocked(_ categoryString: String) -> Bool {
+        guard let category = MonthCategory(rawValue: categoryString) else { return false }
+        // Lock categories that come AFTER the user's current timeframe
+        // (higher displayOrder = closer to wedding = should be locked if user is further out)
+        return category.displayOrder > currentMonthCategory.displayOrder
+    }
 
     var sortedCategories: [String] {
         let categories = MonthCategory.allCases.map { $0.rawValue }
@@ -43,7 +64,9 @@ final class ChecklistViewModel: ObservableObject {
             var displayItems: [String: [ChecklistDisplayItem]] = [:]
 
             for (category, tips) in groupedTips {
-                displayItems[category] = tips.map { tip in
+                // Filter out tips with empty titles
+                let validTips = tips.filter { !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                displayItems[category] = validTips.map { tip in
                     ChecklistDisplayItem(
                         tip: tip,
                         isCompleted: completedTipIds.contains(tip.id),
@@ -53,6 +76,9 @@ final class ChecklistViewModel: ObservableObject {
             }
 
             checklistItems = displayItems
+
+            // Auto-collapse sections except the current timeframe
+            setupInitialCollapsedState()
         } catch {
             print("Error loading checklist: \(error)")
         }
@@ -69,9 +95,13 @@ final class ChecklistViewModel: ObservableObject {
         // Optimistic update
         if wasCompleted {
             completedTipIds.remove(tipId)
+            // Track uncomplete analytics
+            AnalyticsService.shared.logChecklistUncompleted(tipId: tipId)
         } else {
             completedTipIds.insert(tipId)
             HapticManager.shared.checklistComplete()
+            // Track completion analytics
+            AnalyticsService.shared.logChecklistCompleted(tipId: tipId)
         }
 
         // Update local state
@@ -117,16 +147,57 @@ final class ChecklistViewModel: ObservableObject {
 
     func toggleExpanded(_ itemId: UUID) {
         HapticManager.shared.buttonTap()
-        if expandedItemId == itemId {
-            expandedItemId = nil
-        } else {
-            expandedItemId = itemId
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            if expandedItemId == itemId {
+                expandedItemId = nil
+            } else {
+                expandedItemId = itemId
+            }
         }
     }
 
-    func openAffiliateLink(_ urlString: String) {
-        guard let url = URL(string: urlString) else { return }
-        UIApplication.shared.open(url)
+    func toggleSectionCollapsed(_ category: String) {
+        HapticManager.shared.buttonTap()
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            if collapsedSections.contains(category) {
+                collapsedSections.remove(category)
+            } else {
+                collapsedSections.insert(category)
+                // Close any expanded item in this section
+                if let expandedId = expandedItemId,
+                   let items = checklistItems[category],
+                   items.contains(where: { $0.id == expandedId }) {
+                    expandedItemId = nil
+                }
+            }
+        }
+    }
+
+    func isSectionCollapsed(_ category: String) -> Bool {
+        collapsedSections.contains(category)
+    }
+
+    // Auto-collapse sections that the user has already passed
+    func setupInitialCollapsedState() {
+        let currentDisplayOrder = currentMonthCategory.displayOrder
+        for category in sortedCategories {
+            guard let monthCategory = MonthCategory(rawValue: category) else { continue }
+            // Only collapse sections the user has PASSED (lower displayOrder = further from wedding)
+            // Don't collapse current or future (locked) sections
+            if monthCategory.displayOrder < currentDisplayOrder {
+                collapsedSections.insert(category)
+            }
+        }
+    }
+
+    func openAffiliateLink(_ urlString: String, tipId: UUID? = nil) {
+        // Track affiliate link analytics
+        if let tipId = tipId {
+            AnalyticsService.shared.logAffiliateLinkTapped(tipId: tipId, url: urlString)
+        }
+
+        // Use URLHelper for better deep linking (especially for Spotify)
+        URLHelper.openSmartURL(urlString)
     }
 
     func completionProgress(for category: String) -> (completed: Int, total: Int) {
