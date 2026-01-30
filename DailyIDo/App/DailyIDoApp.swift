@@ -29,7 +29,8 @@ struct DailyIDoApp: App {
                                 SubscriptionService.shared.setUserAttributes(
                                     name: user.name,
                                     partnerName: user.partnerName,
-                                    weddingDate: user.weddingDate
+                                    weddingDate: user.weddingDate,
+                                    weddingVenue: user.weddingVenue
                                 )
                             }
                         }

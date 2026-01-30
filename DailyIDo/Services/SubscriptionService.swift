@@ -83,6 +83,7 @@ final class SubscriptionService: ObservableObject {
                     partnerName: user.partnerName,
                     weddingDate: user.weddingDate,
                     weddingTown: user.weddingTown,
+                    weddingVenue: user.weddingVenue,
                     weddingLatitude: user.weddingLatitude,
                     weddingLongitude: user.weddingLongitude,
                     isTentedWedding: user.isTentedWedding,
@@ -221,6 +222,7 @@ final class SubscriptionService: ObservableObject {
                 partnerName: user.partnerName,
                 weddingDate: user.weddingDate,
                 weddingTown: user.weddingTown,
+                weddingVenue: user.weddingVenue,
                 weddingLatitude: user.weddingLatitude,
                 weddingLongitude: user.weddingLongitude,
                 isTentedWedding: user.isTentedWedding,
@@ -247,7 +249,7 @@ final class SubscriptionService: ObservableObject {
     }
 
     /// Set subscriber attributes in RevenueCat for easy identification
-    func setUserAttributes(name: String?, partnerName: String?, weddingDate: Date?) {
+    func setUserAttributes(name: String?, partnerName: String?, weddingDate: Date?, weddingVenue: String? = nil) {
         var attributes: [String: String] = [:]
 
         if let name = name, !name.isEmpty {
@@ -263,6 +265,10 @@ final class SubscriptionService: ObservableObject {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd"
             attributes["wedding_date"] = formatter.string(from: weddingDate)
+        }
+
+        if let weddingVenue = weddingVenue, !weddingVenue.isEmpty {
+            attributes["wedding_venue"] = weddingVenue
         }
 
         // Set all custom attributes

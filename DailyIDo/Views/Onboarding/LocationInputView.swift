@@ -61,14 +61,47 @@ struct LocationInputView: View {
                         .padding(.top, 10)
                     }
 
-                    // Sunset info
-                    Text("This is how we will determine the sunset time and best time for photos and other fun facts about your location")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 32)
-                        .padding(.top, 12)
+                    // I don't know checkbox
+                    Button(action: {
+                        HapticManager.shared.buttonTap()
+                        viewModel.doesntKnowLocation.toggle()
+                        if viewModel.doesntKnowLocation {
+                            // Clear location fields when checking
+                            viewModel.weddingTown = ""
+                            viewModel.weddingLatitude = nil
+                            viewModel.weddingLongitude = nil
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: viewModel.doesntKnowLocation ? "checkmark.square.fill" : "square")
+                                .font(.system(size: 22))
+                                .foregroundColor(viewModel.doesntKnowLocation ? Color(hex: Constants.Colors.buttonPrimary) : .gray)
+
+                            Text("I don't know yet")
+                                .font(.system(size: 17))
+                                .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                        }
+                    }
+                    .padding(.top, 20)
+
+                    if viewModel.doesntKnowLocation {
+                        Text("No worries! You can add this later in settings.")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                            .padding(.top, 8)
+                    } else {
+                        // Sunset info
+                        Text("This helps us show you sunset time and photo timing tips for your location")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.8))
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 32)
+                            .padding(.top, 12)
+                    }
 
                     Spacer()
                         .frame(height: 24)

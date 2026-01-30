@@ -11,8 +11,10 @@ final class OnboardingViewModel: ObservableObject {
     @Published var weddingDate = Date().adding(months: 12)
     @Published var doesntKnowDate = false
     @Published var weddingTown = ""
+    @Published var weddingVenue = ""
     @Published var weddingLatitude: Double?
     @Published var weddingLongitude: Double?
+    @Published var doesntKnowLocation = false
     @Published var isTentedWedding = false
     @Published var feelsPrepered = false
     @Published var referralSource = ""
@@ -42,7 +44,7 @@ final class OnboardingViewModel: ObservableObject {
         switch currentStep {
         case 2: return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case 3: return !partnerName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        case 6: return !weddingTown.isEmpty && weddingLatitude != nil && weddingLongitude != nil
+        case 6: return doesntKnowLocation || (!weddingTown.isEmpty && weddingLatitude != nil && weddingLongitude != nil)
         default: return true
         }
     }
@@ -146,22 +148,32 @@ final class OnboardingViewModel: ObservableObject {
             guard var user = authService.currentUser else { return }
 
             // Calculate initial days until wedding for long engagement logic
-            let initialDays = Date().daysUntil(weddingDate)
+            let initialDays = doesntKnowDate ? nil : Date().daysUntil(weddingDate)
 
             print("📍 [Onboarding] Creating user profile with:")
             print("📍 [Onboarding] - weddingTown: \(weddingTown)")
+            print("📍 [Onboarding] - weddingVenue: \(weddingVenue)")
             print("📍 [Onboarding] - weddingLatitude: \(weddingLatitude ?? 0)")
             print("📍 [Onboarding] - weddingLongitude: \(weddingLongitude ?? 0)")
+
+            // If user doesn't know their date, save nil
+            let dateToSave: Date? = doesntKnowDate ? nil : weddingDate
+
+            // If user doesn't know their location, save nil
+            let townToSave: String? = doesntKnowLocation ? nil : (weddingTown.isEmpty ? nil : weddingTown)
+            let latToSave: Double? = doesntKnowLocation ? nil : weddingLatitude
+            let lonToSave: Double? = doesntKnowLocation ? nil : weddingLongitude
 
             user = User(
                 id: user.id,
                 email: user.email,
                 name: name,
                 partnerName: partnerName,
-                weddingDate: weddingDate,
-                weddingTown: weddingTown,
-                weddingLatitude: weddingLatitude,
-                weddingLongitude: weddingLongitude,
+                weddingDate: dateToSave,
+                weddingTown: townToSave,
+                weddingVenue: weddingVenue.isEmpty ? nil : weddingVenue,
+                weddingLatitude: latToSave,
+                weddingLongitude: lonToSave,
                 isTentedWedding: isTentedWedding,
                 timezone: TimeZone.current.identifier,
                 lastViewedDay: user.lastViewedDay,
@@ -185,7 +197,7 @@ final class OnboardingViewModel: ObservableObject {
 
             // Identify user in subscription service
             subscriptionService.identifyUser(userId: user.id.uuidString)
-            subscriptionService.setUserAttributes(name: name, partnerName: partnerName, weddingDate: weddingDate)
+            subscriptionService.setUserAttributes(name: name, partnerName: partnerName, weddingDate: weddingDate, weddingVenue: weddingVenue)
             print("🎯 [Onboarding] Identified user: \(user.id.uuidString) (\(name) & \(partnerName))")
 
             // Show onboarding complete paywall and wait for it to complete

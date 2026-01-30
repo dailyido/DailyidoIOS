@@ -81,7 +81,7 @@ struct IntroView: View {
                             .opacity(showContent ? 1 : 0)
 
                         // Calm voice - centered
-                        Text("Think of us as your calm voice in the chaos.")
+                        Text("Think of us as your calm voice\nin the chaos.")
                             .font(.custom("CormorantGaramond-Bold", size: 24))
                             .foregroundColor(primaryColor)
                             .multilineTextAlignment(.center)

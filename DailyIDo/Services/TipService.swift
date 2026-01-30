@@ -101,9 +101,10 @@ final class TipService: ObservableObject {
                 return tip
             }
 
-            // Fallback for long engagements (>threshold days): show a critical tip based on position
+            // Fallback for long engagements (>threshold days) or users without a wedding date:
+            // Show a critical tip based on position
             // This ensures users with 500+ days still see useful tips while fun_tips isn't set up
-            if daysUntilWedding > longEngagementThreshold {
+            if daysUntilWedding > longEngagementThreshold || user.weddingDate == nil {
                 return getBypassFallbackTip(user: user, daysUntilWedding: daysUntilWedding)
             }
 
@@ -169,6 +170,15 @@ final class TipService: ObservableObject {
         if funTips.isEmpty && criticalTips.isEmpty {
             print("DEBUG TipService: No fun tips or critical tips loaded, falling back to normal engagement")
             return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
+        }
+
+        // PRIORITY 1 TIP ON "TODAY": When user catches up to today, always show a priority 1 tip
+        // This applies to users without a wedding date or any long engagement user who reaches today
+        if let actual = actualDaysUntilWedding, daysUntilWedding == actual {
+            print("DEBUG TipService: User caught up to today (day \(actual)), showing priority 1 tip")
+            if let priority1Tip = getFirstPriority1MasterTip(isTentedWedding: user.isTentedWedding) {
+                return priority1Tip
+            }
         }
 
         guard let initialDays = user.initialDaysUntilWedding, initialDays > longEngagementThreshold else {

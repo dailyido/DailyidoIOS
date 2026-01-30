@@ -150,6 +150,13 @@ struct SettingsView: View {
                                     )
                                 }
 
+                                // Wedding Venue (optional)
+                                LabeledInputField(
+                                    label: "Wedding Venue (Optional)",
+                                    placeholder: "e.g. The Grand Ballroom",
+                                    text: $viewModel.weddingVenue
+                                )
+
                                 // Tented Wedding Toggle
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -211,6 +218,18 @@ struct SettingsView: View {
                                     .padding(.leading, 44)
 
                                 SettingsActionRow(
+                                    icon: "star.fill",
+                                    title: "Give Us a 5-Star Rating"
+                                ) {
+                                    if let url = URL(string: "https://apps.apple.com/app/id6757710079?action=write-review") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }
+
+                                Divider()
+                                    .padding(.leading, 44)
+
+                                SettingsActionRow(
                                     icon: "bubble.left.and.bubble.right.fill",
                                     title: "Give Us Feedback!"
                                 ) {
@@ -263,31 +282,15 @@ struct SettingsView: View {
                             }
                         }
 
-                        // Developer/Testing Section
-                        SettingsSection(title: "Developer") {
-                            VStack(spacing: 0) {
-                                SettingsActionRow(
-                                    icon: "arrow.counterclockwise",
-                                    title: "Restart Onboarding",
-                                    isDestructive: false
-                                ) {
-                                    Task {
-                                        await viewModel.restartOnboarding()
-                                        // Auth state change will redirect to onboarding
-                                    }
-                                }
-                            }
-                        }
-
                         // App Info
                         VStack(spacing: 8) {
                             HStack(spacing: 4) {
                                 Text("Built with ❤️  by")
-                                    .font(.system(size: 13))
+                                    .font(.system(size: 15))
                                     .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
 
                                 Link("Katie P", destination: URL(string: "https://katiep.me")!)
-                                    .font(.system(size: 13, weight: .medium))
+                                    .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(Color(hex: Constants.Colors.accent))
                             }
 

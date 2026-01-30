@@ -84,9 +84,6 @@ struct OnboardingContainerView: View {
 
                     PlanRevealView(viewModel: viewModel, isOnboardingComplete: $isOnboardingComplete)
                         .tag(13)
-
-                    LongEngagementTutorialView(viewModel: viewModel, isOnboardingComplete: $isOnboardingComplete)
-                        .tag(14)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)

@@ -7,6 +7,7 @@ struct User: Codable, Identifiable {
     var partnerName: String?
     var weddingDate: Date?
     var weddingTown: String?
+    var weddingVenue: String?
     var weddingLatitude: Double?
     var weddingLongitude: Double?
     var isTentedWedding: Bool
@@ -28,6 +29,7 @@ struct User: Codable, Identifiable {
         case partnerName = "partner_name"
         case weddingDate = "wedding_date"
         case weddingTown = "wedding_town"
+        case weddingVenue = "wedding_venue"
         case weddingLatitude = "wedding_latitude"
         case weddingLongitude = "wedding_longitude"
         case isTentedWedding = "is_tented_wedding"
@@ -51,6 +53,7 @@ struct User: Codable, Identifiable {
         partnerName = try container.decodeIfPresent(String.self, forKey: .partnerName)
         weddingDate = try container.decodeIfPresent(Date.self, forKey: .weddingDate)
         weddingTown = try container.decodeIfPresent(String.self, forKey: .weddingTown)
+        weddingVenue = try container.decodeIfPresent(String.self, forKey: .weddingVenue)
         weddingLatitude = try container.decodeIfPresent(Double.self, forKey: .weddingLatitude)
         weddingLongitude = try container.decodeIfPresent(Double.self, forKey: .weddingLongitude)
         isTentedWedding = try container.decodeIfPresent(Bool.self, forKey: .isTentedWedding) ?? false
@@ -72,6 +75,7 @@ struct User: Codable, Identifiable {
          partnerName: String? = nil,
          weddingDate: Date? = nil,
          weddingTown: String? = nil,
+         weddingVenue: String? = nil,
          weddingLatitude: Double? = nil,
          weddingLongitude: Double? = nil,
          isTentedWedding: Bool = false,
@@ -91,6 +95,7 @@ struct User: Codable, Identifiable {
         self.partnerName = partnerName
         self.weddingDate = weddingDate
         self.weddingTown = weddingTown
+        self.weddingVenue = weddingVenue
         self.weddingLatitude = weddingLatitude
         self.weddingLongitude = weddingLongitude
         self.isTentedWedding = isTentedWedding

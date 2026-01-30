@@ -7,6 +7,7 @@ final class SettingsViewModel: ObservableObject {
     @Published var partnerName = ""
     @Published var weddingDate = Date()
     @Published var weddingTown = ""
+    @Published var weddingVenue = ""
     @Published var weddingLatitude: Double?
     @Published var weddingLongitude: Double?
     @Published var isTentedWedding = false
@@ -23,6 +24,7 @@ final class SettingsViewModel: ObservableObject {
     private var originalPartnerName = ""
     private var originalWeddingDate = Date()
     private var originalWeddingTown = ""
+    private var originalWeddingVenue = ""
     private var originalIsTentedWedding = false
     private var originalEmail = ""
 
@@ -36,6 +38,7 @@ final class SettingsViewModel: ObservableObject {
         partnerName != originalPartnerName ||
         !Calendar.current.isDate(weddingDate, inSameDayAs: originalWeddingDate) ||
         weddingTown != originalWeddingTown ||
+        weddingVenue != originalWeddingVenue ||
         isTentedWedding != originalIsTentedWedding ||
         email != originalEmail
     }
@@ -54,6 +57,7 @@ final class SettingsViewModel: ObservableObject {
         partnerName = user.partnerName ?? ""
         weddingDate = user.weddingDate ?? Date()
         weddingTown = user.weddingTown ?? ""
+        weddingVenue = user.weddingVenue ?? ""
         weddingLatitude = user.weddingLatitude
         weddingLongitude = user.weddingLongitude
         isTentedWedding = user.isTentedWedding
@@ -66,6 +70,7 @@ final class SettingsViewModel: ObservableObject {
         originalPartnerName = partnerName
         originalWeddingDate = weddingDate
         originalWeddingTown = weddingTown
+        originalWeddingVenue = weddingVenue
         originalIsTentedWedding = isTentedWedding
         originalEmail = email
     }
@@ -82,6 +87,7 @@ final class SettingsViewModel: ObservableObject {
             partnerName: partnerName,
             weddingDate: weddingDate,
             weddingTown: weddingTown,
+            weddingVenue: weddingVenue.isEmpty ? nil : weddingVenue,
             weddingLatitude: weddingLatitude,
             weddingLongitude: weddingLongitude,
             isTentedWedding: isTentedWedding,
@@ -181,6 +187,7 @@ final class SettingsViewModel: ObservableObject {
             partnerName: user.partnerName,
             weddingDate: user.weddingDate,
             weddingTown: user.weddingTown,
+            weddingVenue: user.weddingVenue,
             weddingLatitude: user.weddingLatitude,
             weddingLongitude: user.weddingLongitude,
             isTentedWedding: user.isTentedWedding,

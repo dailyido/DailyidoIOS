@@ -19,6 +19,7 @@ struct CalendarView: View {
     @State private var showReminderError = false
     @State private var reminderErrorMessage = ""
     @State private var reminderSuccessMessage = ""
+    @State private var showSettings = false
 
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
 
@@ -94,7 +95,9 @@ struct CalendarView: View {
                     GeometryReader { geometry in
                         VStack(spacing: 0) {
                             // Fixed header (stays in place)
-                            CalendarHeaderView()
+                            CalendarHeaderView(onAddDateTapped: {
+                                showSettings = true
+                            })
                                 .zIndex(10)
 
                             // Tearable paper stack
@@ -332,6 +335,17 @@ struct CalendarView: View {
             if let image = shareImage {
                 ShareSheet(items: [image])
             }
+        }
+        .sheet(isPresented: $showSettings, onDismiss: {
+            // Refresh calendar data when settings is dismissed (in case wedding date changed)
+            viewModel.isLoading = true
+            Task {
+                await viewModel.loadData()
+            }
+        }) {
+            SettingsView(onDone: {
+                showSettings = false
+            })
         }
     }
 
@@ -596,6 +610,10 @@ struct CalendarPaperContent: View {
     let canGoBack: Bool
     let statusMessage: String
 
+    private var hasWeddingDate: Bool {
+        AuthService.shared.currentUser?.weddingDate != nil
+    }
+
     /// Process tip text to replace placeholders like XXXX with calculated values
     private func processedTipText(_ text: String) -> String {
         var result = text
@@ -621,16 +639,29 @@ struct CalendarPaperContent: View {
                     Spacer()
                         .frame(height: 24)
 
-                    // Days countdown
-                    Text("\(daysUntilWedding)")
-                        .font(.system(size: 80, weight: .regular))
-                        .foregroundColor(Color(hex: "#254059"))
+                    if hasWeddingDate {
+                        // Days countdown
+                        Text("\(daysUntilWedding)")
+                            .font(.system(size: 80, weight: .regular))
+                            .foregroundColor(Color(hex: "#254059"))
 
-                    Text("DAYS UNTIL YOUR WEDDING")
-                        .font(.system(size: 10, weight: .bold))
-                        .tracking(3.1)
-                        .foregroundColor(Color(hex: Constants.Colors.calendarTextTertiary))
-                        .padding(.top, 8)
+                        Text("DAYS UNTIL YOUR WEDDING")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(3.1)
+                            .foregroundColor(Color(hex: Constants.Colors.calendarTextTertiary))
+                            .padding(.top, 8)
+                    } else {
+                        // No wedding date set
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(Color(hex: Constants.Colors.accent))
+
+                        Text("WEDDING PLANNING TIP")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(3.1)
+                            .foregroundColor(Color(hex: Constants.Colors.calendarTextTertiary))
+                            .padding(.top, 12)
+                    }
 
                     // Tip illustration (own or random fallback)
                     if let tip = tip {
@@ -811,6 +842,7 @@ struct CalendarHeaderView: View {
     var userName: String? = AuthService.shared.currentUser?.name
     var partnerName: String? = AuthService.shared.currentUser?.partnerName
     var weddingDate: Date? = AuthService.shared.currentUser?.weddingDate
+    var onAddDateTapped: (() -> Void)? = nil
 
     private var coupleNames: String? {
         guard let name = userName, !name.isEmpty,
@@ -856,6 +888,20 @@ struct CalendarHeaderView: View {
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.white.opacity(0.7))
                                 .tracking(1)
+                        } else {
+                            // No wedding date set - show tappable prompt
+                            Button(action: {
+                                HapticManager.shared.buttonTap()
+                                onAddDateTapped?()
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 12))
+                                    Text("Add Your Wedding Date")
+                                        .font(.system(size: 13, weight: .medium))
+                                }
+                                .foregroundColor(Color(hex: Constants.Colors.accent))
+                            }
                         }
                     }
                     .padding(.top, 8)

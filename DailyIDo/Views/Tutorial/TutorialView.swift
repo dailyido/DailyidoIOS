@@ -13,6 +13,11 @@ struct TutorialView: View {
         return Date().daysUntil(weddingDate) > 440
     }
 
+    // Check if user doesn't have a wedding date set
+    private var hasNoWeddingDate: Bool {
+        AuthService.shared.currentUser?.weddingDate == nil
+    }
+
     private var steps: [TutorialStep] {
         var baseSteps = [
             TutorialStep(
@@ -58,6 +63,15 @@ struct TutorialView: View {
                 icon: "sparkles",
                 title: "You're Ahead of the Game!",
                 description: "You're over 440 days out—perfect for big-picture planning. More detailed tips will unlock as you get closer (around 15 months out). Focus on the fun stuff first!"
+            ))
+        }
+
+        // Add step for users without a wedding date
+        if hasNoWeddingDate {
+            baseSteps.append(TutorialStep(
+                icon: "calendar.badge.plus",
+                title: "Big Picture Planning",
+                description: "While you work to set your date, we will share a mix of planning tips and fun facts. Be sure to add your wedding date in settings once you finalize!"
             ))
         }
 

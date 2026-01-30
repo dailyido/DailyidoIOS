@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import StoreKit
 
 @MainActor
 final class CalendarViewModel: ObservableObject {
@@ -63,9 +64,15 @@ final class CalendarViewModel: ObservableObject {
 
     // MARK: - Computed Properties
 
+    // Whether the user has set a wedding date
+    var hasWeddingDate: Bool {
+        user?.weddingDate != nil
+    }
+
     // The actual days until wedding from TODAY
+    // Returns 500 as default for users without a wedding date (puts them on long engagement track)
     var actualDaysUntilWedding: Int {
-        guard let weddingDate = user?.weddingDate else { return 0 }
+        guard let weddingDate = user?.weddingDate else { return 500 }
         return Date().daysUntil(weddingDate)
     }
 
@@ -647,11 +654,35 @@ final class CalendarViewModel: ObservableObject {
         // Save progress
         if isNewTip {
             await saveLastViewedDay(nextDaysOut)
+
+            // Track new days swiped for rating request
+            let newDaysCount = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.newDaysSwipedCount) + 1
+            UserDefaults.standard.set(newDaysCount, forKey: Constants.UserDefaultsKeys.newDaysSwipedCount)
+
+            // Request rating after 2 new days (only once)
+            let hasRequestedRating = UserDefaults.standard.bool(forKey: Constants.UserDefaultsKeys.hasRequestedRating)
+            if newDaysCount >= 2 && !hasRequestedRating {
+                UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKeys.hasRequestedRating)
+                await requestAppRating()
+            }
         }
 
         if isFirstDay {
             await MainActor.run {
                 isFirstDay = false
+            }
+        }
+    }
+
+    // MARK: - App Rating
+
+    private func requestAppRating() async {
+        // Small delay to let the UI settle after swipe
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
+        await MainActor.run {
+            if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                SKStoreReviewController.requestReview(in: scene)
             }
         }
     }

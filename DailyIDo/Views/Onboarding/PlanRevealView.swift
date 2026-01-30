@@ -58,28 +58,42 @@ struct PlanRevealView: View {
 
     private var topSection: some View {
         VStack(spacing: 8) {
-            // Names
-            Text("\(viewModel.name) & \(viewModel.partnerName)")
-                .font(.custom("CormorantGaramond-Bold", size: 28))
-                .foregroundColor(primaryColor)
+            if viewModel.doesntKnowDate {
+                // No date version
+                Text("Congratulations on Your Engagement!")
+                    .font(.custom("CormorantGaramond-Bold", size: 32))
+                    .foregroundColor(primaryColor)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
 
-            // Days countdown
-            Text("\(viewModel.daysUntilWedding) Days to Go!")
-                .font(.custom("CormorantGaramond-Bold", size: 42))
-                .foregroundColor(primaryColor)
+                Text("\(viewModel.name) & \(viewModel.partnerName)")
+                    .font(.custom("CormorantGaramond-Bold", size: 24))
+                    .foregroundColor(accentColor)
+                    .padding(.top, 4)
+            } else {
+                // Has date version
+                Text("\(viewModel.name) & \(viewModel.partnerName)")
+                    .font(.custom("CormorantGaramond-Bold", size: 28))
+                    .foregroundColor(primaryColor)
 
-            // Sunset info
-            if let sunsetTime = viewModel.sunsetTime {
-                HStack(spacing: 6) {
-                    Image(systemName: "sun.horizon.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: Constants.Colors.accent))
+                // Days countdown
+                Text("\(viewModel.daysUntilWedding) Days to Go!")
+                    .font(.custom("CormorantGaramond-Bold", size: 42))
+                    .foregroundColor(primaryColor)
 
-                    Text("Sunset on \(formattedWeddingDate): \(sunsetTime)")
-                        .font(.system(size: 15))
-                        .foregroundColor(secondaryColor)
+                // Sunset info (only show if we have location)
+                if let sunsetTime = viewModel.sunsetTime, !viewModel.doesntKnowLocation {
+                    HStack(spacing: 6) {
+                        Image(systemName: "sun.horizon.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: Constants.Colors.accent))
+
+                        Text("Sunset on \(formattedWeddingDate): \(sunsetTime)")
+                            .font(.system(size: 15))
+                            .foregroundColor(secondaryColor)
+                    }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
             }
         }
     }
@@ -88,29 +102,64 @@ struct PlanRevealView: View {
 
     private var valueStackSection: some View {
         VStack(spacing: 20) {
-            // Headline
-            Text("Your Custom Wedding Calendar is Ready")
-                .font(.custom("CormorantGaramond-Bold", size: 28))
-                .foregroundColor(primaryColor)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
+            if viewModel.doesntKnowDate {
+                // No date version
+                Text("We have curated a list of planning tips and fun facts while you work on setting your date!")
+                    .font(.system(size: 17))
+                    .foregroundColor(secondaryColor)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.horizontal, 32)
 
-            // Feature bullets
-            VStack(alignment: .leading, spacing: 14) {
-                featureRow(text: "\(viewModel.daysUntilWedding) daily tips curated for your timeline")
+                Text("Once you pick your date, add the details in settings for your custom day by day calendar.")
+                    .font(.system(size: 15))
+                    .foregroundColor(secondaryColor.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(3)
+                    .padding(.horizontal, 32)
+                    .padding(.top, 4)
 
-                if viewModel.isTentedWedding {
-                    featureRow(text: "Tented wedding expertise included")
+                // Feature bullets
+                VStack(alignment: .leading, spacing: 14) {
+                    featureRow(text: "General planning tips & fun facts")
+
+                    if viewModel.isTentedWedding {
+                        featureRow(text: "Tented wedding expertise included")
+                    }
+
+                    featureRow(text: "Smart checklist organized by priority")
+
+                    featureRow(text: "Expert guidance from top wedding planners")
+
+                    featureRow(text: "Add your date anytime in settings")
                 }
+                .padding(.horizontal, 32)
+                .padding(.top, 12)
+            } else {
+                // Has date version
+                Text("Your Custom Wedding Calendar is Ready")
+                    .font(.custom("CormorantGaramond-Bold", size: 28))
+                    .foregroundColor(primaryColor)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
 
-                featureRow(text: "Smart checklist organized by priority")
+                // Feature bullets
+                VStack(alignment: .leading, spacing: 14) {
+                    featureRow(text: "\(viewModel.daysUntilWedding) daily tips curated for your timeline")
 
-                featureRow(text: "Daily reminders so nothing falls through the cracks")
+                    if viewModel.isTentedWedding {
+                        featureRow(text: "Tented wedding expertise included")
+                    }
 
-                featureRow(text: "Expert guidance from top wedding planners")
+                    featureRow(text: "Smart checklist organized by priority")
+
+                    featureRow(text: "Daily reminders so nothing falls through the cracks")
+
+                    featureRow(text: "Expert guidance from top wedding planners")
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 8)
             }
-            .padding(.horizontal, 32)
-            .padding(.top, 8)
         }
     }
 

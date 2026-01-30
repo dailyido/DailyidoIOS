@@ -43,6 +43,8 @@ enum Constants {
         static let firstAppOpenDate = "firstAppOpenDate"
         static let hasShownInstagramFollowPopup = "hasShownInstagramFollowPopup"
         static let lastViewedDate = "lastViewedDate"  // Date when calendar position was saved
+        static let newDaysSwipedCount = "newDaysSwipedCount"  // Count of new days swiped
+        static let hasRequestedRating = "hasRequestedRating"  // Whether we've asked for rating
     }
 
     // Social Links
