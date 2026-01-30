@@ -957,9 +957,8 @@ struct PerforatedEdge: View {
                         .frame(width: 4, height: 4)
                 }
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
             .padding(.leading, 11)
-            .padding(.top, 4)
         }
         .background(Color(hex: Constants.Colors.calendarHeader))
     }

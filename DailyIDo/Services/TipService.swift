@@ -378,14 +378,22 @@ final class TipService: ObservableObject {
         let checklistTips = tips.filter { tip in
             guard tip.onChecklist else { return false }
 
+            // weddingType can be: nil/empty (general), "tented", or "non-tented"
+            let weddingType = tip.weddingType?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let isGeneral = weddingType == nil || weddingType?.isEmpty == true
+            let isTentedTip = weddingType?.contains("tented") == true && weddingType?.contains("non") == false
+            let isNonTentedTip = weddingType?.contains("non") == true && weddingType?.contains("tented") == true
+
             if isTentedWedding {
-                return true
+                // Show general tips + tented-specific tips (exclude non-tented specific)
+                return isGeneral || isTentedTip
             } else {
-                return tip.weddingType != "tented"
+                // Show general tips + non-tented-specific tips (exclude tented specific)
+                return isGeneral || isNonTentedTip
             }
         }
 
-        // Group by month category
+        // Group by month category and dedupe by title within each category
         var grouped: [String: [Tip]] = [:]
 
         for tip in checklistTips {
@@ -393,12 +401,21 @@ final class TipService: ObservableObject {
             if grouped[category] == nil {
                 grouped[category] = []
             }
-            grouped[category]?.append(tip)
+
+            // Dedupe: only add if no tip with same title already exists in this category
+            let normalizedTitle = tip.title.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let alreadyExists = grouped[category]?.contains { existing in
+                existing.title.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == normalizedTitle
+            } ?? false
+
+            if !alreadyExists {
+                grouped[category]?.append(tip)
+            }
         }
 
-        // Sort each group by priority
+        // Sort each group by specificDay (higher day number = further from wedding = top of list)
         for (category, categoryTips) in grouped {
-            grouped[category] = categoryTips.sorted { $0.priority < $1.priority }
+            grouped[category] = categoryTips.sorted { ($0.specificDay ?? 0) > ($1.specificDay ?? 0) }
         }
 
         return grouped

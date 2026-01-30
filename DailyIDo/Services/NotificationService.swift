@@ -148,16 +148,22 @@ final class NotificationService: ObservableObject {
     }
 
     func scheduleStreakReminder() {
+        // Cancel any existing streak reminder first
+        cancelStreakReminder()
+
         let content = UNMutableNotificationContent()
         content.title = "Don't break your streak!"
         content.body = "Open the app to see today's wedding tip and keep your streak going."
         content.sound = .default
 
-        var dateComponents = DateComponents()
+        // Schedule for TOMORROW at 8 PM (not repeating)
+        // This way, if user opens app today, tomorrow's reminder is set
+        // If they don't open tomorrow, they get the reminder
+        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: Date().adding(days: 1))
         dateComponents.hour = 20  // 8 PM reminder
         dateComponents.minute = 0
 
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         let request = UNNotificationRequest(
             identifier: Constants.NotificationIdentifiers.streakReminder,
             content: content,
@@ -167,7 +173,19 @@ final class NotificationService: ObservableObject {
         center.add(request) { error in
             if let error = error {
                 print("Error scheduling streak reminder: \(error)")
+            } else {
+                print("📅 Streak reminder scheduled for tomorrow at 8 PM")
             }
         }
+    }
+
+    /// Cancel the streak reminder (call when user opens the app)
+    func cancelStreakReminder() {
+        center.removePendingNotificationRequests(withIdentifiers: [Constants.NotificationIdentifiers.streakReminder])
+    }
+
+    /// Call this when app becomes active to reset streak reminder for tomorrow
+    func resetStreakReminderForTomorrow() {
+        scheduleStreakReminder()
     }
 }

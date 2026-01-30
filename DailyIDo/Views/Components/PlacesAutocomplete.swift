@@ -95,6 +95,13 @@ struct PlacesAutocompleteField: View {
                 }
             }
         }
+        .onChange(of: selectedPlace) { newValue in
+            // Update searchText when selectedPlace changes externally (e.g., loaded from storage)
+            // Only update if user isn't actively typing
+            if !isFocused && searchText != newValue {
+                searchText = newValue
+            }
+        }
     }
 
     private func selectPlace(_ prediction: PlacePrediction) {

@@ -236,4 +236,29 @@ final class SubscriptionService: ObservableObject {
         // Identify user in Superwall
         Superwall.shared.identify(userId: userId)
     }
+
+    /// Set subscriber attributes in RevenueCat for easy identification
+    func setUserAttributes(name: String?, partnerName: String?, weddingDate: Date?) {
+        var attributes: [String: String] = [:]
+
+        if let name = name, !name.isEmpty {
+            Purchases.shared.attribution.setDisplayName(name)
+            attributes["name"] = name
+        }
+
+        if let partnerName = partnerName, !partnerName.isEmpty {
+            attributes["partner_name"] = partnerName
+        }
+
+        if let weddingDate = weddingDate {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            attributes["wedding_date"] = formatter.string(from: weddingDate)
+        }
+
+        // Set all custom attributes
+        if !attributes.isEmpty {
+            Purchases.shared.attribution.setAttributes(attributes)
+        }
+    }
 }

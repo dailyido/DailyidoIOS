@@ -250,11 +250,24 @@ final class CalendarViewModel: ObservableObject {
             print("DEBUG CalendarVM: no lastViewedDate found, treating as new day")
         }
 
-        if isNewDay {
-            // New day: reset to yesterday so user swipes to see today
+        // Check if this is a first-time user (never viewed any day)
+        let isFirstTimeUser = user.lastViewedDay == nil
+
+        if isFirstTimeUser {
+            // First-time user: start 3 days back so they can experience swiping
+            // This gives them content to explore without landing with nothing to do
+            displayedDaysOut = actualDaysUntilWedding + 3
+            isFirstDay = true
+            print("DEBUG CalendarVM: first-time user - starting 3 days back = \(displayedDaysOut)")
+
+            Task {
+                await saveLastViewedDay(displayedDaysOut)
+            }
+        } else if isNewDay {
+            // Returning user on a new day: reset to yesterday so they swipe once to see today
             displayedDaysOut = actualDaysUntilWedding + 1
-            isFirstDay = user.lastViewedDay == nil  // Only true for first-time users
-            print("DEBUG CalendarVM: new day - resetting to yesterday = \(displayedDaysOut)")
+            isFirstDay = false
+            print("DEBUG CalendarVM: returning user, new day - resetting to yesterday = \(displayedDaysOut)")
 
             Task {
                 await saveLastViewedDay(displayedDaysOut)
@@ -265,8 +278,8 @@ final class CalendarViewModel: ObservableObject {
             isFirstDay = false
             print("DEBUG CalendarVM: same day - using lastViewedDay = \(lastViewedDay)")
         } else {
-            // Fallback: start at yesterday
-            displayedDaysOut = actualDaysUntilWedding + 1
+            // Fallback: start 3 days back
+            displayedDaysOut = actualDaysUntilWedding + 3
             isFirstDay = true
             print("DEBUG CalendarVM: fallback - setting displayedDaysOut = \(displayedDaysOut)")
 

@@ -177,14 +177,16 @@ final class ChecklistViewModel: ObservableObject {
         collapsedSections.contains(category)
     }
 
-    // Auto-collapse sections that the user has already passed
+    // Auto-collapse sections that the user has already passed OR are locked (future)
+    // Only the current section should be expanded by default
     func setupInitialCollapsedState() {
         let currentDisplayOrder = currentMonthCategory.displayOrder
         for category in sortedCategories {
             guard let monthCategory = MonthCategory(rawValue: category) else { continue }
-            // Only collapse sections the user has PASSED (lower displayOrder = further from wedding)
-            // Don't collapse current or future (locked) sections
-            if monthCategory.displayOrder < currentDisplayOrder {
+            // Collapse everything except the current section
+            // Past sections: displayOrder < currentDisplayOrder
+            // Locked/future sections: displayOrder > currentDisplayOrder
+            if monthCategory.displayOrder != currentDisplayOrder {
                 collapsedSections.insert(category)
             }
         }

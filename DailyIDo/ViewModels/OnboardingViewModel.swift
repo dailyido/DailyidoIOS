@@ -148,6 +148,11 @@ final class OnboardingViewModel: ObservableObject {
             // Calculate initial days until wedding for long engagement logic
             let initialDays = Date().daysUntil(weddingDate)
 
+            print("📍 [Onboarding] Creating user profile with:")
+            print("📍 [Onboarding] - weddingTown: \(weddingTown)")
+            print("📍 [Onboarding] - weddingLatitude: \(weddingLatitude ?? 0)")
+            print("📍 [Onboarding] - weddingLongitude: \(weddingLongitude ?? 0)")
+
             user = User(
                 id: user.id,
                 email: user.email,
@@ -180,7 +185,8 @@ final class OnboardingViewModel: ObservableObject {
 
             // Identify user in subscription service
             subscriptionService.identifyUser(userId: user.id.uuidString)
-            print("🎯 [Onboarding] Identified user: \(user.id.uuidString)")
+            subscriptionService.setUserAttributes(name: name, partnerName: partnerName, weddingDate: weddingDate)
+            print("🎯 [Onboarding] Identified user: \(user.id.uuidString) (\(name) & \(partnerName))")
 
             // Show onboarding complete paywall and wait for it to complete
             print("🎯 [Onboarding] About to show onboarding paywall...")

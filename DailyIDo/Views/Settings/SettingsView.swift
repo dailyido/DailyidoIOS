@@ -281,6 +281,16 @@ struct SettingsView: View {
 
                         // App Info
                         VStack(spacing: 8) {
+                            HStack(spacing: 4) {
+                                Text("Built with ❤️  by")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
+
+                                Link("Katie P", destination: URL(string: "https://katiep.me")!)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Color(hex: Constants.Colors.accent))
+                            }
+
                             Text("Daily I Do")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText))

@@ -22,6 +22,17 @@ struct DailyIDoApp: App {
                         }
                 } else {
                     MainTabView()
+                        .onAppear {
+                            // Identify existing user in RevenueCat with their attributes
+                            if let user = authService.currentUser {
+                                SubscriptionService.shared.identifyUser(userId: user.id.uuidString)
+                                SubscriptionService.shared.setUserAttributes(
+                                    name: user.name,
+                                    partnerName: user.partnerName,
+                                    weddingDate: user.weddingDate
+                                )
+                            }
+                        }
                 }
             }
             .preferredColorScheme(.light)
@@ -185,9 +196,12 @@ struct MainTabView: View {
             await checkForRemotePopups()
             checkForInstagramFollowPopup()
         }
-        // TEMPORARY: Check for popups every time app becomes active (for testing)
+        // Handle app becoming active
         .onChange(of: scenePhase) { newPhase in
             if newPhase == .active {
+                // Reset streak reminder to tomorrow (so today's doesn't fire if user opened app)
+                NotificationService.shared.resetStreakReminderForTomorrow()
+
                 Task {
                     await checkForRemotePopups()
                 }
@@ -416,24 +430,24 @@ struct TabBarButton: View {
     }
 }
 
-// Custom flip calendar icon with grommets and curled corner
+// Custom flip calendar icon with grommets, curled corner, and heart
 struct FlipCalendarIcon: View {
     var body: some View {
         GeometryReader { geo in
             let size = min(geo.size.width, geo.size.height)
-            let strokeWidth: CGFloat = size * 0.08
-            let cornerRadius: CGFloat = size * 0.12
-            let grommetRadius: CGFloat = size * 0.06
-            let grommetY: CGFloat = size * 0.08
-            let curlSize: CGFloat = size * 0.22
+            let strokeWidth: CGFloat = size * 0.09
+            let cornerRadius: CGFloat = size * 0.14
+            let grommetRadius: CGFloat = size * 0.08
+            let grommetY: CGFloat = size * 0.12
+            let curlSize: CGFloat = size * 0.18
 
             ZStack {
                 // Main calendar body with curled corner
                 Path { path in
-                    let rect = CGRect(x: 0, y: grommetY, width: size, height: size - grommetY)
+                    let rect = CGRect(x: strokeWidth / 2, y: grommetY, width: size - strokeWidth, height: size - grommetY - strokeWidth / 2)
 
                     // Start at top-left corner
-                    path.move(to: CGPoint(x: cornerRadius, y: rect.minY))
+                    path.move(to: CGPoint(x: rect.minX + cornerRadius, y: rect.minY))
 
                     // Top edge
                     path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
@@ -446,20 +460,15 @@ struct FlipCalendarIcon: View {
                     )
 
                     // Right edge down to curl
-                    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - curlSize - cornerRadius))
+                    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - curlSize))
 
-                    // Curl corner - diagonal then curve
-                    path.addLine(to: CGPoint(x: rect.maxX - curlSize * 0.3, y: rect.maxY - curlSize))
-                    path.addQuadCurve(
-                        to: CGPoint(x: rect.maxX - curlSize, y: rect.maxY - curlSize * 0.3),
-                        control: CGPoint(x: rect.maxX - curlSize * 0.5, y: rect.maxY - curlSize * 0.5)
-                    )
+                    // Curl corner
                     path.addLine(to: CGPoint(x: rect.maxX - curlSize, y: rect.maxY))
 
                     // Bottom edge
-                    path.addLine(to: CGPoint(x: cornerRadius, y: rect.maxY))
+                    path.addLine(to: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY))
                     path.addArc(
-                        center: CGPoint(x: cornerRadius, y: rect.maxY - cornerRadius),
+                        center: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY - cornerRadius),
                         radius: cornerRadius,
                         startAngle: .degrees(90),
                         endAngle: .degrees(180),
@@ -467,9 +476,9 @@ struct FlipCalendarIcon: View {
                     )
 
                     // Left edge
-                    path.addLine(to: CGPoint(x: 0, y: rect.minY + cornerRadius))
+                    path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
                     path.addArc(
-                        center: CGPoint(x: cornerRadius, y: rect.minY + cornerRadius),
+                        center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
                         radius: cornerRadius,
                         startAngle: .degrees(180),
                         endAngle: .degrees(270),
@@ -478,46 +487,36 @@ struct FlipCalendarIcon: View {
                 }
                 .stroke(style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round, lineJoin: .round))
 
-                // Curl detail line
+                // Curl detail line (the fold)
                 Path { path in
-                    let rect = CGRect(x: 0, y: grommetY, width: size, height: size - grommetY)
-                    path.move(to: CGPoint(x: rect.maxX - curlSize * 0.3, y: rect.maxY - curlSize))
-                    path.addQuadCurve(
-                        to: CGPoint(x: rect.maxX - curlSize * 0.7, y: rect.maxY - curlSize * 0.15),
-                        control: CGPoint(x: rect.maxX - curlSize * 0.6, y: rect.maxY - curlSize * 0.6)
-                    )
+                    let rect = CGRect(x: strokeWidth / 2, y: grommetY, width: size - strokeWidth, height: size - grommetY - strokeWidth / 2)
+                    path.move(to: CGPoint(x: rect.maxX - curlSize, y: rect.maxY - curlSize))
+                    path.addLine(to: CGPoint(x: rect.maxX - curlSize, y: rect.maxY))
+                    path.move(to: CGPoint(x: rect.maxX - curlSize, y: rect.maxY - curlSize))
+                    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - curlSize))
                 }
-                .stroke(style: StrokeStyle(lineWidth: strokeWidth * 0.7, lineCap: .round))
+                .stroke(style: StrokeStyle(lineWidth: strokeWidth * 0.7, lineCap: .round, lineJoin: .round))
 
-                // Two grommets at top
-                let grommetSpacing = size * 0.28
+                // Two filled grommets at top
+                let grommetSpacing = size * 0.24
                 let centerX = size / 2
 
-                // Left grommet
+                // Left grommet (filled)
                 Circle()
-                    .stroke(lineWidth: strokeWidth)
+                    .fill()
                     .frame(width: grommetRadius * 2, height: grommetRadius * 2)
                     .position(x: centerX - grommetSpacing, y: grommetY)
 
-                // Right grommet
+                // Right grommet (filled)
                 Circle()
-                    .stroke(lineWidth: strokeWidth)
+                    .fill()
                     .frame(width: grommetRadius * 2, height: grommetRadius * 2)
                     .position(x: centerX + grommetSpacing, y: grommetY)
 
-                // Content dashes in middle
-                let dashY = size * 0.55
-                let dashWidth = size * 0.08
-                let dashSpacing = size * 0.12
-
-                ForEach(0..<3, id: \.self) { i in
-                    RoundedRectangle(cornerRadius: strokeWidth / 2)
-                        .frame(width: dashWidth, height: strokeWidth)
-                        .position(
-                            x: centerX + CGFloat(i - 1) * dashSpacing,
-                            y: dashY
-                        )
-                }
+                // Heart in center
+                Image(systemName: "heart.fill")
+                    .font(.system(size: size * 0.32))
+                    .position(x: centerX, y: size * 0.58)
             }
         }
     }

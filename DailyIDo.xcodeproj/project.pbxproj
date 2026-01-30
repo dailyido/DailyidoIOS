@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0B4152362F23F4AC0055B285 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4152352F23F4AC0055B285 /* AnalyticsService.swift */; };
-		0B4152382F2A670F0055B285 /* URLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4152372F2A670F0055B285 /* URLHelper.swift */; };
+		0B4152402F2AB30C0055B285 /* URLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B41523F2F2AB30C0055B285 /* URLHelper.swift */; };
 		0B55C31C2F156CEF002450AC /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 0B55C31B2F156CEF002450AC /* Configuration.storekit */; };
 		0B55C31E2F156E65002450AC /* RCPurchaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55C31D2F156E65002450AC /* RCPurchaseController.swift */; };
 		0BE0DB7C2F08724900E9A51F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = G100000001 /* Supabase */; };
@@ -80,7 +80,7 @@
 /* Begin PBXFileReference section */
 		027044510D463EB67B88B213 /* IntroView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IntroView.swift; sourceTree = "<group>"; };
 		0B4152352F23F4AC0055B285 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
-		0B4152372F2A670F0055B285 /* URLHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLHelper.swift; sourceTree = "<group>"; };
+		0B41523F2F2AB30C0055B285 /* URLHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLHelper.swift; sourceTree = "<group>"; };
 		0B55C31B2F156CEF002450AC /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		0B55C31D2F156E65002450AC /* RCPurchaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCPurchaseController.swift; sourceTree = "<group>"; };
 		0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Regular.ttf"; sourceTree = "<group>"; };
@@ -172,7 +172,6 @@
 		D100000001 = {
 			isa = PBXGroup;
 			children = (
-				0B4152372F2A670F0055B285 /* URLHelper.swift */,
 				0BE0DB822F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf */,
 				0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */,
 				0B55C31B2F156CEF002450AC /* Configuration.storekit */,
@@ -275,6 +274,7 @@
 		D100000009 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				0B41523F2F2AB30C0055B285 /* URLHelper.swift */,
 				B100000016 /* Constants.swift */,
 				B100000017 /* HapticManager.swift */,
 				B100000018 /* DateHelpers.swift */,
@@ -482,7 +482,7 @@
 				A100000040 /* PlanRevealView.swift in Sources */,
 				A100000041 /* CalendarView.swift in Sources */,
 				A100000042 /* TipCardView.swift in Sources */,
-				0B4152382F2A670F0055B285 /* URLHelper.swift in Sources */,
+				0B4152402F2AB30C0055B285 /* URLHelper.swift in Sources */,
 				A100000043 /* TearAwayModifier.swift in Sources */,
 				A100000044 /* ChecklistView.swift in Sources */,
 				A100000045 /* ChecklistGroupView.swift in Sources */,
@@ -629,7 +629,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;
@@ -660,7 +660,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 16;
+				CURRENT_PROJECT_VERSION = 17;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;

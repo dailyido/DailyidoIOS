@@ -41,7 +41,14 @@ final class SettingsViewModel: ObservableObject {
     }
 
     func loadUserData() {
-        guard let user = user else { return }
+        guard let user = user else {
+            print("⚠️ [Settings] loadUserData - NO USER FOUND")
+            return
+        }
+
+        print("📍 [Settings] loadUserData - user.weddingTown: \(user.weddingTown ?? "nil")")
+        print("📍 [Settings] loadUserData - user.weddingLatitude: \(user.weddingLatitude ?? 0)")
+        print("📍 [Settings] loadUserData - user.weddingLongitude: \(user.weddingLongitude ?? 0)")
 
         name = user.name ?? ""
         partnerName = user.partnerName ?? ""
@@ -51,6 +58,8 @@ final class SettingsViewModel: ObservableObject {
         weddingLongitude = user.weddingLongitude
         isTentedWedding = user.isTentedWedding
         email = user.email ?? ""
+
+        print("📍 [Settings] loadUserData - loaded weddingTown: \(weddingTown)")
 
         // Store original values to track changes
         originalName = name
