@@ -180,6 +180,15 @@ final class SubscriptionService: ObservableObject {
 
     /// Shows paywall when free user tries to swipe back past their limit
     func showSwipeBackLimitPaywall() async {
+        // First refresh subscription status
+        await checkSubscriptionStatus()
+
+        // Don't show paywall if already subscribed
+        if isSubscribed {
+            print("🎯 [Superwall] User already subscribed, skipping swipe_back_limit_reached paywall")
+            return
+        }
+
         print("🎯 [Superwall] ========================================")
         print("🎯 [Superwall] Triggering event: \(Constants.SuperwallEvents.swipeBackLimitReached)")
         print("🎯 [Superwall] User isSubscribed: \(isSubscribed)")
