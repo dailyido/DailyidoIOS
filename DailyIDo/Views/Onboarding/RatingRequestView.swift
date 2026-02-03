@@ -30,7 +30,7 @@ struct RatingRequestView: View {
                     .padding(.bottom, 40)
 
                     // Title
-                    Text("We'd love a 5-star rating!")
+                    Text("We'd love a rating!")
                         .font(.custom("CormorantGaramond-Bold", size: 34))
                         .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
                         .multilineTextAlignment(.center)
