@@ -96,7 +96,11 @@ final class SubscriptionService: ObservableObject {
                     onboardingComplete: user.onboardingComplete,
                     isSubscribed: isPremium,
                     initialDaysUntilWedding: user.initialDaysUntilWedding,
-                    createdAt: user.createdAt
+                    createdAt: user.createdAt,
+                    doesntKnowDate: user.doesntKnowDate,
+                    doesntKnowLocation: user.doesntKnowLocation,
+                    dateAddedAt: user.dateAddedAt,
+                    locationAddedAt: user.locationAddedAt
                 )
                 try? await AuthService.shared.updateUser(user)
             }
@@ -235,7 +239,11 @@ final class SubscriptionService: ObservableObject {
                 onboardingComplete: user.onboardingComplete,
                 isSubscribed: isPremium,
                 initialDaysUntilWedding: user.initialDaysUntilWedding,
-                createdAt: user.createdAt
+                createdAt: user.createdAt,
+                doesntKnowDate: user.doesntKnowDate,
+                doesntKnowLocation: user.doesntKnowLocation,
+                dateAddedAt: user.dateAddedAt,
+                locationAddedAt: user.locationAddedAt
             )
             try await AuthService.shared.updateUser(user)
         }

@@ -20,6 +20,8 @@
 		3CB56BB60F755C28E604E14E /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */; };
 		49355FA825BDAF41A85C1C0B /* CachedAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */; };
 		5F3DE165828436611C8A6F28 /* InstagramSharingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */; };
+		850CC226F730EDB7EFE66C55 /* FavoritesGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F65EDD98586917BCF7ED64 /* FavoritesGridView.swift */; };
+		931A0559221BB48116468396 /* FavoriteItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB5F9AE4FCE624F0AFE9986 /* FavoriteItem.swift */; };
 		A100000001 /* DailyIDoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000001 /* DailyIDoApp.swift */; };
 		A100000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000002 /* AppDelegate.swift */; };
 		A100000003 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000003 /* User.swift */; };
@@ -70,11 +72,14 @@
 		A100000060 /* RandomIllustrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000060 /* RandomIllustrationService.swift */; };
 		A100000061 /* ReferralSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000061 /* ReferralSourceView.swift */; };
 		A100000062 /* LongEngagementTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000062 /* LongEngagementTutorialView.swift */; };
+		A16166D7B336F09BA7EB562A /* FavoriteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44F492A17FACF552B8C0745 /* FavoriteDetailView.swift */; };
 		CC304584A069FE27C4B37244 /* IntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027044510D463EB67B88B213 /* IntroView.swift */; };
+		D193CED3122D7DF9708806FB /* HeartFavoriteAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4CAC269BF1C2E3D3ECB36F /* HeartFavoriteAnimation.swift */; };
 		E13FCC8D4C401ED648FF9D55 /* CouplePhotoUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */; };
 		E3E8E858039347BDFC0F3B4B /* MeetThePlannersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */; };
 		E4FF6B303C8130B0B3C84A87 /* FunTip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 841D4F19F6F50370F16F863E /* FunTip.swift */; };
 		E88A57A002E8D4186534F7F6 /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DA4D425A2489A41FE768 /* TutorialView.swift */; };
+		F33EBC67C27CB77AE5458F59 /* FavoritesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C902ADA2310F43AE2B7E1E5 /* FavoritesService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,11 +91,15 @@
 		0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Regular.ttf"; sourceTree = "<group>"; };
 		0BE0DB822F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Bold.ttf"; sourceTree = "<group>"; };
 		15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InstagramSharingService.swift; sourceTree = "<group>"; };
+		1E4CAC269BF1C2E3D3ECB36F /* HeartFavoriteAnimation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HeartFavoriteAnimation.swift; sourceTree = "<group>"; };
+		27F65EDD98586917BCF7ED64 /* FavoritesGridView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoritesGridView.swift; sourceTree = "<group>"; };
 		3086DA4D425A2489A41FE768 /* TutorialView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
 		4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
 		5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
 		5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MeetThePlannersView.swift; path = DailyIDo/Views/Settings/MeetThePlannersView.swift; sourceTree = "<group>"; };
 		841D4F19F6F50370F16F863E /* FunTip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FunTip.swift; sourceTree = "<group>"; };
+		8C902ADA2310F43AE2B7E1E5 /* FavoritesService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoritesService.swift; sourceTree = "<group>"; };
+		9EB5F9AE4FCE624F0AFE9986 /* FavoriteItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoriteItem.swift; sourceTree = "<group>"; };
 		B100000000 /* DailyIDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyIDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B100000001 /* DailyIDoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyIDoApp.swift; sourceTree = "<group>"; };
 		B100000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -143,6 +152,7 @@
 		B100000060 /* RandomIllustrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomIllustrationService.swift; sourceTree = "<group>"; };
 		B100000061 /* ReferralSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralSourceView.swift; sourceTree = "<group>"; };
 		B100000062 /* LongEngagementTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongEngagementTutorialView.swift; sourceTree = "<group>"; };
+		C44F492A17FACF552B8C0745 /* FavoriteDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoriteDetailView.swift; sourceTree = "<group>"; };
 		DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CouplePhotoUploadView.swift; path = DailyIDo/Views/Onboarding/CouplePhotoUploadView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -224,6 +234,7 @@
 				B100000006 /* RemotePopup.swift */,
 				B100000007 /* AppConfig.swift */,
 				841D4F19F6F50370F16F863E /* FunTip.swift */,
+				9EB5F9AE4FCE624F0AFE9986 /* FavoriteItem.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -243,6 +254,7 @@
 				B100000015 /* SubscriptionService.swift */,
 				15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */,
 				5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */,
+				8C902ADA2310F43AE2B7E1E5 /* FavoritesService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -300,6 +312,7 @@
 				B100000027 /* RemotePopupView.swift */,
 				B100000028 /* PlacesAutocomplete.swift */,
 				4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */,
+				1E4CAC269BF1C2E3D3ECB36F /* HeartFavoriteAnimation.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -341,6 +354,8 @@
 				B100000044 /* ChecklistView.swift */,
 				B100000045 /* ChecklistGroupView.swift */,
 				B100000046 /* ChecklistItemView.swift */,
+				27F65EDD98586917BCF7ED64 /* FavoritesGridView.swift */,
+				C44F492A17FACF552B8C0745 /* FavoriteDetailView.swift */,
 			);
 			path = Checklist;
 			sourceTree = "<group>";
@@ -497,6 +512,11 @@
 				CC304584A069FE27C4B37244 /* IntroView.swift in Sources */,
 				3CB56BB60F755C28E604E14E /* RemindersService.swift in Sources */,
 				E4FF6B303C8130B0B3C84A87 /* FunTip.swift in Sources */,
+				931A0559221BB48116468396 /* FavoriteItem.swift in Sources */,
+				F33EBC67C27CB77AE5458F59 /* FavoritesService.swift in Sources */,
+				D193CED3122D7DF9708806FB /* HeartFavoriteAnimation.swift in Sources */,
+				850CC226F730EDB7EFE66C55 /* FavoritesGridView.swift in Sources */,
+				A16166D7B336F09BA7EB562A /* FavoriteDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -629,7 +649,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;
@@ -644,7 +664,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dailyido.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -660,7 +680,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;
@@ -675,7 +695,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dailyido.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

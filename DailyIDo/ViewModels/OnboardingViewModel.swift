@@ -164,6 +164,10 @@ final class OnboardingViewModel: ObservableObject {
             let latToSave: Double? = doesntKnowLocation ? nil : weddingLatitude
             let lonToSave: Double? = doesntKnowLocation ? nil : weddingLongitude
 
+            // Track when date/location were added (only if they provided them)
+            let dateAddedAt: Date? = doesntKnowDate ? nil : Date()
+            let locationAddedAt: Date? = doesntKnowLocation ? nil : Date()
+
             user = User(
                 id: user.id,
                 email: user.email,
@@ -184,7 +188,11 @@ final class OnboardingViewModel: ObservableObject {
                 onboardingComplete: true,
                 isSubscribed: user.isSubscribed,
                 initialDaysUntilWedding: initialDays,
-                createdAt: user.createdAt ?? Date()
+                createdAt: user.createdAt ?? Date(),
+                doesntKnowDate: doesntKnowDate,
+                doesntKnowLocation: doesntKnowLocation,
+                dateAddedAt: dateAddedAt,
+                locationAddedAt: locationAddedAt
             )
 
             try await authService.updateUser(user)

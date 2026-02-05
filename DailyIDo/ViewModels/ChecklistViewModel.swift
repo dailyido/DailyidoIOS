@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import SwiftUI
+import Combine
 
 @MainActor
 final class ChecklistViewModel: ObservableObject {
@@ -9,12 +10,31 @@ final class ChecklistViewModel: ObservableObject {
     @Published var expandedItemId: UUID?
     @Published var collapsedSections: Set<String> = []
     @Published var isLoading = true
+    @Published var favoriteTips: [Tip] = []
+    @Published var isFavoritesSectionCollapsed = false
 
     private let tipService = TipService.shared
     private let supabase = SupabaseService.shared
     private let authService = AuthService.shared
+    private let favoritesService = FavoritesService.shared
+    private var cancellables = Set<AnyCancellable>()
 
     var user: User? { authService.currentUser }
+
+    init() {
+        setupFavoritesSubscription()
+    }
+
+    private func setupFavoritesSubscription() {
+        favoritesService.$favoriteTipIds
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { [weak self] in
+                    await self?.loadFavoriteTips()
+                }
+            }
+            .store(in: &cancellables)
+    }
 
     // Current days until wedding
     var daysUntilWedding: Int {
@@ -63,9 +83,24 @@ final class ChecklistViewModel: ObservableObject {
 
             var displayItems: [String: [ChecklistDisplayItem]] = [:]
 
+            // Check if user has both wedding date and location for sunset time calculation
+            let canCalculateSunset = user?.weddingDate != nil &&
+                                     user?.weddingLatitude != nil &&
+                                     user?.weddingLongitude != nil
+
             for (category, tips) in groupedTips {
                 // Filter out tips with empty titles
-                let validTips = tips.filter { !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                // Also filter out tips containing "XXXX" placeholder if user can't calculate sunset time
+                let validTips = tips.filter { tip in
+                    let hasValidTitle = !tip.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    let hasXXXXPlaceholder = tip.tipText.contains("XXXX")
+
+                    // Skip tips with XXXX if we can't calculate sunset time
+                    if hasXXXXPlaceholder && !canCalculateSunset {
+                        return false
+                    }
+                    return hasValidTitle
+                }
                 displayItems[category] = validTips.map { tip in
                     ChecklistDisplayItem(
                         tip: tip,
@@ -79,6 +114,10 @@ final class ChecklistViewModel: ObservableObject {
 
             // Auto-collapse sections except the current timeframe
             setupInitialCollapsedState()
+
+            // Load favorites
+            await favoritesService.loadFavorites()
+            await loadFavoriteTips()
         } catch {
             print("Error loading checklist: \(error)")
         }
@@ -206,5 +245,55 @@ final class ChecklistViewModel: ObservableObject {
         guard let items = checklistItems[category] else { return (0, 0) }
         let completed = items.filter { $0.isCompleted }.count
         return (completed, items.count)
+    }
+
+    // MARK: - Favorites
+
+    func loadFavoriteTips() async {
+        // Get all tips that match the favorite IDs
+        let favoriteIds = favoritesService.favoriteTipIds
+        print("📋 [Favorites] Loading favorite tips for IDs: \(favoriteIds)")
+
+        guard !favoriteIds.isEmpty else {
+            favoriteTips = []
+            print("📋 [Favorites] No favorite IDs, clearing list")
+            return
+        }
+
+        // Load tips if not already loaded
+        if tipService.tips.isEmpty {
+            do {
+                try await tipService.loadTips()
+            } catch {
+                print("📋 [Favorites] Error loading tips: \(error)")
+                return
+            }
+        }
+
+        // Search in regular tips
+        var foundTips = tipService.tips.filter { favoriteIds.contains($0.id) }
+        print("📋 [Favorites] Found \(foundTips.count) in regular tips")
+
+        // Also search in fun tips and convert to Tip
+        let funTipsAsTips = tipService.funTips
+            .filter { favoriteIds.contains($0.id) }
+            .map { $0.toTip() }
+        print("📋 [Favorites] Found \(funTipsAsTips.count) in fun tips")
+
+        foundTips.append(contentsOf: funTipsAsTips)
+
+        favoriteTips = foundTips
+        print("📋 [Favorites] Total favorite tips loaded: \(favoriteTips.count)")
+    }
+
+    func toggleFavoritesSectionCollapsed() {
+        HapticManager.shared.buttonTap()
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            isFavoritesSectionCollapsed.toggle()
+        }
+    }
+
+    func removeFavorite(tipId: UUID) async {
+        await favoritesService.removeFavorite(tipId: tipId)
     }
 }

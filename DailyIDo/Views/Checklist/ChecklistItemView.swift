@@ -9,6 +9,23 @@ struct ChecklistItemView: View {
 
     @State private var checkmarkScale: CGFloat = 1.0
 
+    /// Process tip text to replace placeholders like XXXX with calculated values
+    private func processedTipText(_ text: String) -> String {
+        var result = text
+
+        // Replace XXXX with sunset time for the user's wedding date/location
+        if result.contains("XXXX"),
+           let user = AuthService.shared.currentUser,
+           let weddingDate = user.weddingDate,
+           let latitude = user.weddingLatitude,
+           let longitude = user.weddingLongitude,
+           let sunsetTime = SunsetService.shared.formattedSunsetTime(for: weddingDate, latitude: latitude, longitude: longitude) {
+            result = result.replacingOccurrences(of: "XXXX", with: sunsetTime)
+        }
+
+        return result
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Main row
@@ -89,11 +106,12 @@ struct ChecklistItemView: View {
             // Expanded content
             if isExpanded {
                 VStack(alignment: .leading, spacing: 16) {
-                    // Full tip text (supports \n for line breaks)
-                    Text(item.tip.tipText.replacingOccurrences(of: "\\n", with: "\n"))
+                    // Full tip text (supports \n for line breaks, processes XXXX placeholders)
+                    Text(processedTipText(item.tip.tipText.replacingOccurrences(of: "\\n", with: "\n")))
                         .font(.system(size: 15))
                         .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
                         .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     // Affiliate button (only if URL exists)
                     if let affiliateUrl = item.tip.affiliateUrl, !affiliateUrl.isEmpty {

@@ -31,6 +31,11 @@ struct TutorialView: View {
                 description: "Swipe left on the calendar to tear away the page and reveal your next daily tip."
             ),
             TutorialStep(
+                icon: "heart.fill",
+                title: "Save Your Favorites",
+                description: "Double-tap any tip to save it to your favorites. Find all your saved tips in the To-Do tab to revisit later!"
+            ),
+            TutorialStep(
                 icon: "square.and.arrow.up",
                 title: "Share Your Journey",
                 description: "Tap the share button to post to Instagram Stories, text your fiancé, or share with your wedding party."

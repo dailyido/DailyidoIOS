@@ -266,6 +266,43 @@ final class SupabaseService {
         return response
     }
 
+    // MARK: - Favorites Operations
+
+    func fetchUserFavorites(userId: UUID) async throws -> [FavoriteItem] {
+        let response: [FavoriteItem] = try await client
+            .from("user_favorites")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .order("favorited_at", ascending: false)
+            .execute()
+            .value
+
+        return response
+    }
+
+    func addFavorite(userId: UUID, tipId: UUID) async throws {
+        let item = FavoriteItem(
+            id: UUID(),
+            userId: userId,
+            tipId: tipId,
+            favoritedAt: Date()
+        )
+
+        try await client
+            .from("user_favorites")
+            .insert(item)
+            .execute()
+    }
+
+    func removeFavorite(userId: UUID, tipId: UUID) async throws {
+        try await client
+            .from("user_favorites")
+            .delete()
+            .eq("user_id", value: userId.uuidString)
+            .eq("tip_id", value: tipId.uuidString)
+            .execute()
+    }
+
     // MARK: - Storage Operations
 
     func listRandomIllustrations() async throws -> [String] {

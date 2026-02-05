@@ -21,6 +21,10 @@ struct User: Codable, Identifiable {
     var isSubscribed: Bool
     var initialDaysUntilWedding: Int?
     var createdAt: Date?
+    var doesntKnowDate: Bool
+    var doesntKnowLocation: Bool
+    var dateAddedAt: Date?
+    var locationAddedAt: Date?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -43,6 +47,10 @@ struct User: Codable, Identifiable {
         case isSubscribed = "is_subscribed"
         case initialDaysUntilWedding = "initial_days_until_wedding"
         case createdAt = "created_at"
+        case doesntKnowDate = "doesnt_know_date"
+        case doesntKnowLocation = "doesnt_know_location"
+        case dateAddedAt = "date_added_at"
+        case locationAddedAt = "location_added_at"
     }
 
     init(from decoder: Decoder) throws {
@@ -67,6 +75,10 @@ struct User: Codable, Identifiable {
         isSubscribed = try container.decodeIfPresent(Bool.self, forKey: .isSubscribed) ?? false
         initialDaysUntilWedding = try container.decodeIfPresent(Int.self, forKey: .initialDaysUntilWedding)
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        doesntKnowDate = try container.decodeIfPresent(Bool.self, forKey: .doesntKnowDate) ?? false
+        doesntKnowLocation = try container.decodeIfPresent(Bool.self, forKey: .doesntKnowLocation) ?? false
+        dateAddedAt = try container.decodeIfPresent(Date.self, forKey: .dateAddedAt)
+        locationAddedAt = try container.decodeIfPresent(Date.self, forKey: .locationAddedAt)
     }
 
     init(id: UUID = UUID(),
@@ -88,7 +100,11 @@ struct User: Codable, Identifiable {
          onboardingComplete: Bool = false,
          isSubscribed: Bool = false,
          initialDaysUntilWedding: Int? = nil,
-         createdAt: Date? = nil) {
+         createdAt: Date? = nil,
+         doesntKnowDate: Bool = false,
+         doesntKnowLocation: Bool = false,
+         dateAddedAt: Date? = nil,
+         locationAddedAt: Date? = nil) {
         self.id = id
         self.email = email
         self.name = name
@@ -109,6 +125,10 @@ struct User: Codable, Identifiable {
         self.isSubscribed = isSubscribed
         self.initialDaysUntilWedding = initialDaysUntilWedding
         self.createdAt = createdAt
+        self.doesntKnowDate = doesntKnowDate
+        self.doesntKnowLocation = doesntKnowLocation
+        self.dateAddedAt = dateAddedAt
+        self.locationAddedAt = locationAddedAt
     }
 
     var daysUntilWedding: Int? {

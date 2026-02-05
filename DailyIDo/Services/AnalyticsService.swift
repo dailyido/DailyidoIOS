@@ -34,6 +34,11 @@ enum AnalyticsEvent: String {
     case streakMilestoneHit = "streak_milestone_hit"
     case streakBroken = "streak_broken"
 
+    // Favorites
+    case tipFavorited = "tip_favorited"
+    case tipUnfavorited = "tip_unfavorited"
+    case favoriteDetailViewed = "favorite_detail_viewed"
+
     // Settings
     case profileUpdated = "profile_updated"
     case shareAppTapped = "share_app_tapped"
@@ -102,6 +107,19 @@ final class AnalyticsService {
     private var isEnabled: Bool = true
     private let supabase = SupabaseService.shared
 
+    /// Persistent device ID for accurate unique user tracking
+    /// Generated once on first launch and stored in UserDefaults
+    private(set) lazy var deviceId: String = {
+        let key = "analytics_device_id"
+        if let existingId = UserDefaults.standard.string(forKey: key) {
+            return existingId
+        }
+        // Generate new UUID and store it
+        let newId = UUID().uuidString
+        UserDefaults.standard.set(newId, forKey: key)
+        return newId
+    }()
+
     private init() {}
 
     // MARK: - Session Management
@@ -145,6 +163,7 @@ final class AnalyticsService {
 
             let eventRecord = AnalyticsEventRecord(
                 userId: AuthService.shared.currentUser?.id,
+                deviceId: deviceId,
                 eventName: event.rawValue,
                 eventData: jsonString,
                 screenName: screenName,
@@ -265,6 +284,20 @@ final class AnalyticsService {
         log(.streakBroken, data: ["previous_streak": previousStreak])
     }
 
+    // MARK: - Favorites Tracking
+
+    func logTipFavorited(tipId: UUID) {
+        log(.tipFavorited, data: ["tip_id": tipId.uuidString])
+    }
+
+    func logTipUnfavorited(tipId: UUID) {
+        log(.tipUnfavorited, data: ["tip_id": tipId.uuidString])
+    }
+
+    func logFavoriteDetailViewed(tipId: UUID) {
+        log(.favoriteDetailViewed, data: ["tip_id": tipId.uuidString])
+    }
+
     // MARK: - Settings Tracking
 
     func logProfileUpdated() {
@@ -334,6 +367,7 @@ final class AnalyticsService {
 
 private struct AnalyticsEventRecord: Encodable {
     let userId: UUID?
+    let deviceId: String  // Persistent unique identifier for accurate user counts
     let eventName: String
     let eventData: String  // JSON string
     let screenName: String?
@@ -344,6 +378,7 @@ private struct AnalyticsEventRecord: Encodable {
 
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
+        case deviceId = "device_id"
         case eventName = "event_name"
         case eventData = "event_data"
         case screenName = "screen_name"

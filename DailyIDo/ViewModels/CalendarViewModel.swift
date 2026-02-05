@@ -784,6 +784,7 @@ final class CalendarViewModel: ObservableObject {
             partnerName: user.partnerName,
             weddingDate: user.weddingDate,
             weddingTown: user.weddingTown,
+            weddingVenue: user.weddingVenue,
             weddingLatitude: user.weddingLatitude,
             weddingLongitude: user.weddingLongitude,
             isTentedWedding: user.isTentedWedding,
@@ -796,7 +797,11 @@ final class CalendarViewModel: ObservableObject {
             onboardingComplete: user.onboardingComplete,
             isSubscribed: user.isSubscribed,
             initialDaysUntilWedding: user.initialDaysUntilWedding,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            doesntKnowDate: user.doesntKnowDate,
+            doesntKnowLocation: user.doesntKnowLocation,
+            dateAddedAt: user.dateAddedAt,
+            locationAddedAt: user.locationAddedAt
         )
 
         try? await authService.updateUser(updatedUser, silent: true)
@@ -812,6 +817,7 @@ final class CalendarViewModel: ObservableObject {
             partnerName: user.partnerName,
             weddingDate: user.weddingDate,
             weddingTown: user.weddingTown,
+            weddingVenue: user.weddingVenue,
             weddingLatitude: user.weddingLatitude,
             weddingLongitude: user.weddingLongitude,
             isTentedWedding: user.isTentedWedding,
@@ -824,7 +830,11 @@ final class CalendarViewModel: ObservableObject {
             onboardingComplete: user.onboardingComplete,
             isSubscribed: user.isSubscribed,
             initialDaysUntilWedding: user.initialDaysUntilWedding,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            doesntKnowDate: user.doesntKnowDate,
+            doesntKnowLocation: user.doesntKnowLocation,
+            dateAddedAt: user.dateAddedAt,
+            locationAddedAt: user.locationAddedAt
         )
 
         try? await authService.updateUser(updatedUser, silent: true)

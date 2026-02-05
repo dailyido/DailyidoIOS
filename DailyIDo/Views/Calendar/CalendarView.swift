@@ -20,6 +20,8 @@ struct CalendarView: View {
     @State private var reminderErrorMessage = ""
     @State private var reminderSuccessMessage = ""
     @State private var showSettings = false
+    @State private var showHeartAnimation = false
+    @StateObject private var favoritesService = FavoritesService.shared
 
     private let primaryColor = Color(hex: Constants.Colors.buttonPrimary)
 
@@ -136,7 +138,22 @@ struct CalendarView: View {
                                     tip: viewModel.currentTip,
                                     canTear: viewModel.canTear,
                                     canGoBack: viewModel.canGoBack,
-                                    statusMessage: viewModel.statusMessage
+                                    statusMessage: viewModel.statusMessage,
+                                    onDoubleTap: {
+                                        print("💖 [Calendar] Double tap detected!")
+                                        guard let tip = viewModel.currentTip else {
+                                            print("💖 [Calendar] No current tip!")
+                                            return
+                                        }
+                                        print("💖 [Calendar] Toggling favorite for tip: \(tip.id) - \(tip.title)")
+                                        Task {
+                                            let isFavorited = await favoritesService.toggleFavorite(tipId: tip.id)
+                                            print("💖 [Calendar] Toggle result - isFavorited: \(isFavorited)")
+                                            if isFavorited {
+                                                showHeartAnimation = true
+                                            }
+                                        }
+                                    }
                                 )
                                 .modifier(TearAwayModifier(
                                     offset: viewModel.dragOffset,
@@ -218,9 +235,13 @@ struct CalendarView: View {
                     streakService.dismissMilestone()
                 }
             }
+
+            // Heart favorite animation
+            HeartFavoriteAnimation(isShowing: $showHeartAnimation)
         }
         .task {
             await viewModel.loadData()
+            await favoritesService.loadFavorites()
         }
         .onAppear {
             // Refresh when returning from settings (e.g., wedding date changed)
@@ -609,6 +630,7 @@ struct CalendarPaperContent: View {
     let canTear: Bool
     let canGoBack: Bool
     let statusMessage: String
+    var onDoubleTap: (() -> Void)? = nil
 
     private var hasWeddingDate: Bool {
         AuthService.shared.currentUser?.weddingDate != nil
@@ -737,19 +759,19 @@ struct CalendarPaperContent: View {
                 // Compact swipe hints
                 if canTear || canGoBack {
                     HStack(spacing: 16) {
-                        if canTear {
+                        if canGoBack {
                             HStack(spacing: 4) {
                                 Image(systemName: "chevron.left")
                                     .font(.system(size: 9, weight: .medium))
-                                Text("tear")
+                                Text("Previous")
                                     .font(.system(size: 10, weight: .regular))
                                     .tracking(0.5)
                             }
                         }
 
-                        if canGoBack {
+                        if canTear {
                             HStack(spacing: 4) {
-                                Text("previous")
+                                Text("Next")
                                     .font(.system(size: 10, weight: .regular))
                                     .tracking(0.5)
                                 Image(systemName: "chevron.right")
@@ -772,6 +794,11 @@ struct CalendarPaperContent: View {
                 topTrailingRadius: 0
             )
         )
+        .onTapGesture(count: 2) {
+            if tip != nil {
+                onDoubleTap?()
+            }
+        }
     }
 }
 

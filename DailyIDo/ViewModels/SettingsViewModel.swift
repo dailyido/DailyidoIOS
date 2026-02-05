@@ -80,6 +80,28 @@ final class SettingsViewModel: ObservableObject {
 
         isSaving = true
 
+        // Check if user is adding a date for the first time (previously didn't know)
+        var newDoesntKnowDate = user.doesntKnowDate
+        var newDateAddedAt = user.dateAddedAt
+        if user.doesntKnowDate && user.weddingDate == nil {
+            // User previously didn't know their date, now they're adding one
+            newDoesntKnowDate = false
+            newDateAddedAt = Date()
+            print("📊 [Analytics] User added wedding date - tracking conversion")
+        }
+
+        // Check if user is adding a location for the first time (previously didn't know)
+        var newDoesntKnowLocation = user.doesntKnowLocation
+        var newLocationAddedAt = user.locationAddedAt
+        if user.doesntKnowLocation && (user.weddingTown == nil || user.weddingLatitude == nil) {
+            // User previously didn't know their location, now they're adding one
+            if !weddingTown.isEmpty && weddingLatitude != nil {
+                newDoesntKnowLocation = false
+                newLocationAddedAt = Date()
+                print("📊 [Analytics] User added wedding location - tracking conversion")
+            }
+        }
+
         user = User(
             id: user.id,
             email: email.isEmpty ? user.email : email,
@@ -100,7 +122,11 @@ final class SettingsViewModel: ObservableObject {
             onboardingComplete: user.onboardingComplete,
             isSubscribed: user.isSubscribed,
             initialDaysUntilWedding: user.initialDaysUntilWedding,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            doesntKnowDate: newDoesntKnowDate,
+            doesntKnowLocation: newDoesntKnowLocation,
+            dateAddedAt: newDateAddedAt,
+            locationAddedAt: newLocationAddedAt
         )
 
         do {
@@ -200,7 +226,11 @@ final class SettingsViewModel: ObservableObject {
             onboardingComplete: false,  // Reset onboarding
             isSubscribed: user.isSubscribed,
             initialDaysUntilWedding: user.initialDaysUntilWedding,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            doesntKnowDate: user.doesntKnowDate,
+            doesntKnowLocation: user.doesntKnowLocation,
+            dateAddedAt: user.dateAddedAt,
+            locationAddedAt: user.locationAddedAt
         )
 
         do {

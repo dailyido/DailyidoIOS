@@ -63,7 +63,11 @@ final class StreakService: ObservableObject {
                     onboardingComplete: user.onboardingComplete,
                     isSubscribed: user.isSubscribed,
                     initialDaysUntilWedding: user.initialDaysUntilWedding,
-                    createdAt: user.createdAt
+                    createdAt: user.createdAt,
+                    doesntKnowDate: user.doesntKnowDate,
+                    doesntKnowLocation: user.doesntKnowLocation,
+                    dateAddedAt: user.dateAddedAt,
+                    locationAddedAt: user.locationAddedAt
                 )
             } else {
                 // Missed a day - reset streak (silent, no negative messaging)
@@ -87,7 +91,11 @@ final class StreakService: ObservableObject {
                     onboardingComplete: user.onboardingComplete,
                     isSubscribed: user.isSubscribed,
                     initialDaysUntilWedding: user.initialDaysUntilWedding,
-                    createdAt: user.createdAt
+                    createdAt: user.createdAt,
+                    doesntKnowDate: user.doesntKnowDate,
+                    doesntKnowLocation: user.doesntKnowLocation,
+                    dateAddedAt: user.dateAddedAt,
+                    locationAddedAt: user.locationAddedAt
                 )
             }
         } else {
@@ -112,7 +120,11 @@ final class StreakService: ObservableObject {
                 onboardingComplete: user.onboardingComplete,
                 isSubscribed: user.isSubscribed,
                 initialDaysUntilWedding: user.initialDaysUntilWedding,
-                createdAt: user.createdAt
+                createdAt: user.createdAt,
+                doesntKnowDate: user.doesntKnowDate,
+                doesntKnowLocation: user.doesntKnowLocation,
+                dateAddedAt: user.dateAddedAt,
+                locationAddedAt: user.locationAddedAt
             )
         }
 
