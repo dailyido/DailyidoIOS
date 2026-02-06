@@ -139,6 +139,7 @@ struct CalendarView: View {
                                     canTear: viewModel.canTear,
                                     canGoBack: viewModel.canGoBack,
                                     statusMessage: viewModel.statusMessage,
+                                    isFavorited: viewModel.currentTip.map { favoritesService.isFavorite($0.id) } ?? false,
                                     onDoubleTap: {
                                         print("💖 [Calendar] Double tap detected!")
                                         guard let tip = viewModel.currentTip else {
@@ -630,6 +631,7 @@ struct CalendarPaperContent: View {
     let canTear: Bool
     let canGoBack: Bool
     let statusMessage: String
+    var isFavorited: Bool = false
     var onDoubleTap: (() -> Void)? = nil
 
     private var hasWeddingDate: Bool {
@@ -654,14 +656,15 @@ struct CalendarPaperContent: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Scrollable content area (vertical only, allows horizontal pass-through)
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 0) {
-                    Spacer()
-                        .frame(height: 24)
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                // Scrollable content area (vertical only, allows horizontal pass-through)
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        Spacer()
+                            .frame(height: 24)
 
-                    if hasWeddingDate {
+                        if hasWeddingDate {
                         // Days countdown
                         Text("\(daysUntilWedding)")
                             .font(.system(size: 80, weight: .regular))
@@ -783,6 +786,15 @@ struct CalendarPaperContent: View {
                 }
             }
             .padding(.bottom, 16)
+            }
+
+            // Favorited heart indicator in upper right corner
+            if isFavorited {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(Color(hex: Constants.Colors.accent))
+                    .padding(12)
+            }
         }
         .frame(maxWidth: .infinity)
         .background(Color(hex: Constants.Colors.calendarCard))
@@ -1023,15 +1035,19 @@ struct GoldBindingRing: View {
 struct PerforatedEdge: View {
     var body: some View {
         GeometryReader { geometry in
-            HStack(spacing: 11) {
-                ForEach(0..<20, id: \.self) { _ in
+            let dotSize: CGFloat = 4
+            let spacing: CGFloat = 11
+            let totalDotWidth = dotSize + spacing
+            let numberOfDots = Int(geometry.size.width / totalDotWidth)
+
+            HStack(spacing: spacing) {
+                ForEach(0..<numberOfDots, id: \.self) { _ in
                     Circle()
                         .fill(Color.white.opacity(0.3))
-                        .frame(width: 4, height: 4)
+                        .frame(width: dotSize, height: dotSize)
                 }
             }
-            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
-            .padding(.leading, 11)
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
         }
         .background(Color(hex: Constants.Colors.calendarHeader))
     }
