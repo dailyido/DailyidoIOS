@@ -954,19 +954,10 @@ struct CalendarHeaderView: View {
             }
             .frame(height: 68)
 
-            // Perforated edge
+            // Perforated edge - centered half over blue header, half over white
             PerforatedEdge()
                 .frame(height: 12)
-                .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            Color.black.opacity(0),
-                            Color.black.opacity(0.05)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+                .offset(y: -6)
         }
         .clipShape(
             UnevenRoundedRectangle(

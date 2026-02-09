@@ -34,13 +34,23 @@ struct ChecklistView: View {
                     LoadingSpinner()
                 } else {
                     VStack(spacing: 0) {
+                        // Title
+                        Text("Checklist & Favorites")
+                            .font(.system(size: 34, weight: .bold))
+                            .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
+                            .minimumScaleFactor(0.7)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+
                         // Subtitle
-                        Text("Your curated checklist from all of the important daily wedding tips!")
+                        Text("Here you will find your curated checklist from all of the important daily wedding tips as well as the tips you selected as your favorites!")
                             .font(.system(size: 15))
                             .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 20)
-                            .padding(.top, 8)
+                            .padding(.top, 4)
                             .padding(.bottom, 16)
 
                         // Tab Toggle
@@ -64,8 +74,12 @@ struct ChecklistView: View {
                     }
                 }
             }
-            .navigationTitle("Checklist & Favorites")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    EmptyView()
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {

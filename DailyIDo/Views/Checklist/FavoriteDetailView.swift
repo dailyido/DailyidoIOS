@@ -18,9 +18,13 @@ struct FavoriteDetailView: View {
     @State private var showInstagramAlert = false
     @State private var showFacebookAlert = false
 
-    private var daysUntilWedding: Int {
-        guard let weddingDate = AuthService.shared.currentUser?.weddingDate else { return 0 }
-        return Date().daysUntil(weddingDate)
+    private var favoritedDateString: String {
+        guard let date = FavoritesService.shared.favoritedDates[tip.id] else {
+            return "Saved tip"
+        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        return "Saved on \(formatter.string(from: date))"
     }
 
     var body: some View {
@@ -48,8 +52,8 @@ struct FavoriteDetailView: View {
 
                 // Card content matching calendar style
                 VStack(spacing: 0) {
-                    // Days until wedding header
-                    Text("\(daysUntilWedding) days until your wedding")
+                    // Saved date header
+                    Text(favoritedDateString)
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(Color(hex: Constants.Colors.secondaryText))
                         .padding(.top, 24)
@@ -311,7 +315,10 @@ struct FavoriteDetailView: View {
     private func generateShareImage(with illustrationImage: UIImage? = nil) -> UIImage? {
         let sharingService = InstagramSharingService.shared
         let shareableCard = ShareableCalendarCard(
-            daysUntilWedding: daysUntilWedding,
+            daysUntilWedding: {
+                guard let weddingDate = AuthService.shared.currentUser?.weddingDate else { return 0 }
+                return Date().daysUntil(weddingDate)
+            }(),
             tipTitle: tip.title,
             tipText: tip.tipText,
             illustrationImage: illustrationImage

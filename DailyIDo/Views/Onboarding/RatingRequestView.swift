@@ -4,7 +4,6 @@ import StoreKit
 struct RatingRequestView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @Environment(\.requestReview) var requestReview
-    @State private var hasShownRatingPrompt = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -54,14 +53,11 @@ struct RatingRequestView: View {
                     Spacer()
                         .frame(height: max(40, geometry.size.height * 0.12))
 
-                    // Continue button - first tap shows rating, second tap advances
+                    // Continue button - shows rating prompt and advances immediately
+                    // The system rating dialog overlays on top regardless of navigation
                     PrimaryButton(title: "Continue") {
-                        if !hasShownRatingPrompt {
-                            requestReview()
-                            hasShownRatingPrompt = true
-                        } else {
-                            viewModel.nextStep()
-                        }
+                        requestReview()
+                        viewModel.nextStep()
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 48)

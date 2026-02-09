@@ -2,7 +2,7 @@ import Foundation
 import RevenueCat
 import SuperwallKit
 
-final class SubscriptionService: ObservableObject {
+final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
     static let shared = SubscriptionService()
 
     @Published var isSubscribed = false
@@ -10,7 +10,25 @@ final class SubscriptionService: ObservableObject {
 
     private var purchaseController: RCPurchaseController?
 
-    private init() {}
+    private override init() { super.init() }
+
+    // MARK: - PurchasesDelegate
+
+    /// Called by RevenueCat whenever customer info changes (purchases, restores, renewals)
+    nonisolated func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
+        let isPremium = customerInfo.entitlements[Constants.Entitlements.premium]?.isActive == true
+        print("💳 [Subscription] RevenueCat delegate: entitlement active = \(isPremium)")
+
+        if isPremium {
+            Superwall.shared.subscriptionStatus = .active
+        } else {
+            Superwall.shared.subscriptionStatus = .inactive
+        }
+
+        Task { @MainActor in
+            self.isSubscribed = isPremium
+        }
+    }
 
     func configure() {
         print("🔧 [SubscriptionService] ========================================")
@@ -21,7 +39,8 @@ final class SubscriptionService: ObservableObject {
         // Configure RevenueCat first
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: Constants.revenueCatAPIKey)
-        print("🔧 [SubscriptionService] RevenueCat configured")
+        Purchases.shared.delegate = self
+        print("🔧 [SubscriptionService] RevenueCat configured (with delegate)")
 
         // Create purchase controller for Superwall + RevenueCat integration
         let controller = RCPurchaseController()

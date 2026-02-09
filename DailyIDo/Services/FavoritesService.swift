@@ -7,6 +7,7 @@ final class FavoritesService: ObservableObject {
 
     @Published private(set) var favoriteTipIds: Set<UUID> = []
     @Published private(set) var isLoading = false
+    private(set) var favoritedDates: [UUID: Date] = [:]
 
     private let supabase = SupabaseService.shared
     private let authService = AuthService.shared
@@ -29,6 +30,7 @@ final class FavoritesService: ObservableObject {
             print("💖 [Favorites] Loading favorites for user: \(userId)")
             let favorites = try await supabase.fetchUserFavorites(userId: userId)
             favoriteTipIds = Set(favorites.map { $0.tipId })
+            favoritedDates = Dictionary(uniqueKeysWithValues: favorites.map { ($0.tipId, $0.favoritedAt) })
             print("💖 [Favorites] Loaded \(favoriteTipIds.count) favorites: \(favoriteTipIds)")
         } catch {
             print("💖 [Favorites] Error loading: \(error)")
@@ -61,8 +63,10 @@ final class FavoritesService: ObservableObject {
         // Optimistic update
         if wasFavorited {
             favoriteTipIds.remove(tipId)
+            favoritedDates.removeValue(forKey: tipId)
         } else {
             favoriteTipIds.insert(tipId)
+            favoritedDates[tipId] = Date()
         }
 
         // Haptic feedback
