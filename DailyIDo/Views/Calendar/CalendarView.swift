@@ -788,12 +788,13 @@ struct CalendarPaperContent: View {
             .padding(.bottom, 16)
             }
 
-            // Favorited heart indicator in upper right corner
-            if isFavorited {
-                Image(systemName: "heart.fill")
+            // Favorite heart indicator in upper right corner
+            if tip != nil {
+                Image(systemName: isFavorited ? "heart.fill" : "heart")
                     .font(.system(size: 18))
-                    .foregroundColor(Color(hex: Constants.Colors.accent))
+                    .foregroundColor(isFavorited ? Color(hex: Constants.Colors.accent) : Color(hex: Constants.Colors.calendarTextMuted))
                     .padding(12)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isFavorited)
             }
         }
         .frame(maxWidth: .infinity)

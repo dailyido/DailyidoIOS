@@ -210,6 +210,21 @@ struct MainTabView: View {
         }
     }
 
+    /// Check if this popup was already shown today
+    private func hasShownPopupToday(_ popupId: UUID) -> Bool {
+        let key = "popup_shown_\(popupId.uuidString)"
+        guard let lastShown = UserDefaults.standard.object(forKey: key) as? Date else {
+            return false
+        }
+        return Calendar.current.isDateInToday(lastShown)
+    }
+
+    /// Mark a popup as shown today
+    private func markPopupShownToday(_ popupId: UUID) {
+        let key = "popup_shown_\(popupId.uuidString)"
+        UserDefaults.standard.set(Date(), forKey: key)
+    }
+
     private func checkForRemotePopups() async {
         // Don't show popups until user has completed the tutorial
         guard UserDefaults.standard.bool(forKey: "hasSeenTutorial") else {
@@ -244,10 +259,15 @@ struct MainTabView: View {
                 $0.triggerDate != nil &&
                 Calendar.current.isDate($0.triggerDate!, inSameDayAs: today)
             }) {
+                guard !hasShownPopupToday(holidayPopup.id) else {
+                    print("DEBUG: Holiday popup already shown today, skipping")
+                    return
+                }
                 print("DEBUG: Found matching holiday popup!")
                 await MainActor.run {
                     currentPopup = holidayPopup
                     showRemotePopup = true
+                    markPopupShownToday(holidayPopup.id)
                 }
                 return
             }
@@ -257,10 +277,15 @@ struct MainTabView: View {
                 $0.popupType == PopupType.daysOut.rawValue &&
                 $0.triggerDaysOut == daysOut
             }) {
+                guard !hasShownPopupToday(daysOutPopup.id) else {
+                    print("DEBUG: Days-out popup already shown today, skipping")
+                    return
+                }
                 print("DEBUG: Found matching days_out popup!")
                 await MainActor.run {
                     currentPopup = daysOutPopup
                     showRemotePopup = true
+                    markPopupShownToday(daysOutPopup.id)
                 }
             }
         } catch {

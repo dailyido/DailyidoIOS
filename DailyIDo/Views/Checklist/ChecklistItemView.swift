@@ -80,6 +80,8 @@ struct ChecklistItemView: View {
                                 )
                                 .strikethrough(item.isCompleted, color: Color(hex: Constants.Colors.secondaryText))
                                 .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .animation(nil, value: isExpanded)
 
                             if item.isCompleted, let completedAt = item.completedAt {
                                 Text("Completed \(completedAt.formattedShort)")
