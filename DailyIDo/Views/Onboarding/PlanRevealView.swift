@@ -137,7 +137,7 @@ struct PlanRevealView: View {
                 .padding(.top, 12)
             } else {
                 // Has date version
-                Text("Your Custom Wedding Calendar is Ready")
+                Text("Your Custom Wedding Countdown is Ready")
                     .font(.custom("CormorantGaramond-Bold", size: 28))
                     .foregroundColor(primaryColor)
                     .multilineTextAlignment(.center)

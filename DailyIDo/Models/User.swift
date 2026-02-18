@@ -15,6 +15,7 @@ struct User: Codable, Identifiable {
     var lastViewedDay: Int?
     var currentStreak: Int
     var longestStreak: Int
+    var totalDaysUsed: Int
     var lastStreakDate: Date?
     var tipsViewedCount: Int
     var onboardingComplete: Bool
@@ -41,6 +42,7 @@ struct User: Codable, Identifiable {
         case lastViewedDay = "last_viewed_day"
         case currentStreak = "current_streak"
         case longestStreak = "longest_streak"
+        case totalDaysUsed = "total_days_used"
         case lastStreakDate = "last_streak_date"
         case tipsViewedCount = "tips_viewed_count"
         case onboardingComplete = "onboarding_complete"
@@ -69,6 +71,7 @@ struct User: Codable, Identifiable {
         lastViewedDay = try container.decodeIfPresent(Int.self, forKey: .lastViewedDay)
         currentStreak = try container.decodeIfPresent(Int.self, forKey: .currentStreak) ?? 0
         longestStreak = try container.decodeIfPresent(Int.self, forKey: .longestStreak) ?? 0
+        totalDaysUsed = try container.decodeIfPresent(Int.self, forKey: .totalDaysUsed) ?? 0
         lastStreakDate = try container.decodeIfPresent(Date.self, forKey: .lastStreakDate)
         tipsViewedCount = try container.decodeIfPresent(Int.self, forKey: .tipsViewedCount) ?? 0
         onboardingComplete = try container.decodeIfPresent(Bool.self, forKey: .onboardingComplete) ?? false
@@ -95,6 +98,7 @@ struct User: Codable, Identifiable {
          lastViewedDay: Int? = nil,
          currentStreak: Int = 0,
          longestStreak: Int = 0,
+         totalDaysUsed: Int = 0,
          lastStreakDate: Date? = nil,
          tipsViewedCount: Int = 0,
          onboardingComplete: Bool = false,
@@ -119,6 +123,7 @@ struct User: Codable, Identifiable {
         self.lastViewedDay = lastViewedDay
         self.currentStreak = currentStreak
         self.longestStreak = longestStreak
+        self.totalDaysUsed = totalDaysUsed
         self.lastStreakDate = lastStreakDate
         self.tipsViewedCount = tipsViewedCount
         self.onboardingComplete = onboardingComplete

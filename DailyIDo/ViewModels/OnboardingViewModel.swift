@@ -205,18 +205,19 @@ final class OnboardingViewModel: ObservableObject {
 
             // Identify user in subscription service
             subscriptionService.identifyUser(userId: user.id.uuidString)
-            subscriptionService.setUserAttributes(name: name, partnerName: partnerName, weddingDate: weddingDate, weddingVenue: weddingVenue)
+            subscriptionService.setUserAttributes(name: name, partnerName: partnerName, weddingDate: weddingDate, weddingVenue: weddingVenue, weddingTown: weddingTown, referralSource: referralSource)
             print("🎯 [Onboarding] Identified user: \(user.id.uuidString) (\(name) & \(partnerName))")
-
-            // Show onboarding complete paywall and wait for it to complete
-            print("🎯 [Onboarding] About to show onboarding paywall...")
-            await subscriptionService.showOnboardingPaywall()
-            print("🎯 [Onboarding] Onboarding paywall flow completed")
-
-            HapticManager.shared.success()
         } catch {
+            print("🎯 [Onboarding] Error during profile save: \(error)")
             showError = true
             errorMessage = error.localizedDescription
         }
+
+        // Always show paywall regardless of profile save success/failure
+        print("🎯 [Onboarding] About to show onboarding paywall...")
+        await subscriptionService.showOnboardingPaywall()
+        print("🎯 [Onboarding] Onboarding paywall flow completed")
+
+        HapticManager.shared.success()
     }
 }

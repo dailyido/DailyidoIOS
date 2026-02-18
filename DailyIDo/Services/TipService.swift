@@ -299,8 +299,7 @@ final class TipService: ObservableObject {
     // MARK: - Fun Tip Selection
 
     /// Get a fun tip for a specific day
-    /// Uses deterministic selection based on day number so each day always gets a unique tip
-    /// Guarantees no two consecutive days will show the same tip
+    /// Uses a hash-based selection to spread tips out and avoid nearby repeats
     private func getFunTipForDay(_ daysUntilWedding: Int) -> FunTip? {
         guard !funTips.isEmpty else { return nil }
 
@@ -308,12 +307,14 @@ final class TipService: ObservableObject {
         let sortedFunTips = funTips.sorted { $0.id.uuidString < $1.id.uuidString }
         let totalTips = sortedFunTips.count
 
-        // Use a simple sequential approach - each day gets the next tip in the sorted list
-        // This guarantees no consecutive days get the same tip
-        let index = daysUntilWedding % totalTips
+        // Use a hash-based approach to scatter the selection across the tip pool
+        // This prevents nearby days from getting the same or adjacent tips
+        // The multiplier 2654435761 is the golden ratio hash constant (Knuth's multiplicative hash)
+        let hash = abs(daysUntilWedding &* 2654435761)
+        let index = hash % totalTips
 
         let selectedTip = sortedFunTips[index]
-        print("DEBUG TipService: Day \(daysUntilWedding) - fun tip index \(index) of \(totalTips): \(selectedTip.title)")
+        print("DEBUG TipService: Day \(daysUntilWedding) - fun tip hash index \(index) of \(totalTips): \(selectedTip.title)")
 
         return selectedTip
     }

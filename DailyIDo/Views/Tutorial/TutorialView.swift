@@ -23,7 +23,7 @@ struct TutorialView: View {
             TutorialStep(
                 icon: "heart.fill",
                 title: "Welcome to Daily I Do!",
-                description: "Let's walk through how to use the app."
+                description: "Welcome to your new daily, stress-free wedding planning app. Be sure to check in every day for your next planning tip! Let's walk through how to use the app."
             ),
             TutorialStep(
                 icon: "hand.draw",

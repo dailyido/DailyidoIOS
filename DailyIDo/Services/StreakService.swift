@@ -5,6 +5,7 @@ final class StreakService: ObservableObject {
 
     @Published var currentStreak: Int = 0
     @Published var longestStreak: Int = 0
+    @Published var totalDaysUsed: Int = 0
     @Published var showingMilestone: StreakMilestone?
 
     private var milestones: [StreakMilestone] = []
@@ -33,6 +34,7 @@ final class StreakService: ObservableObject {
             await MainActor.run {
                 self.currentStreak = user.currentStreak
                 self.longestStreak = user.longestStreak
+                self.totalDaysUsed = user.totalDaysUsed
             }
             return
         }
@@ -58,6 +60,7 @@ final class StreakService: ObservableObject {
                     lastViewedDay: user.lastViewedDay,
                     currentStreak: user.currentStreak + 1,
                     longestStreak: max(user.longestStreak, user.currentStreak + 1),
+                    totalDaysUsed: user.totalDaysUsed + 1,
                     lastStreakDate: today,
                     tipsViewedCount: user.tipsViewedCount,
                     onboardingComplete: user.onboardingComplete,
@@ -86,6 +89,7 @@ final class StreakService: ObservableObject {
                     lastViewedDay: user.lastViewedDay,
                     currentStreak: 1,
                     longestStreak: user.longestStreak,
+                    totalDaysUsed: user.totalDaysUsed + 1,
                     lastStreakDate: today,
                     tipsViewedCount: user.tipsViewedCount,
                     onboardingComplete: user.onboardingComplete,
@@ -115,6 +119,7 @@ final class StreakService: ObservableObject {
                 lastViewedDay: user.lastViewedDay,
                 currentStreak: 1,
                 longestStreak: max(user.longestStreak, 1),
+                totalDaysUsed: 1,
                 lastStreakDate: today,
                 tipsViewedCount: user.tipsViewedCount,
                 onboardingComplete: user.onboardingComplete,
@@ -133,6 +138,7 @@ final class StreakService: ObservableObject {
         await MainActor.run {
             self.currentStreak = user.currentStreak
             self.longestStreak = user.longestStreak
+            self.totalDaysUsed = user.totalDaysUsed
         }
 
         // Track streak analytics

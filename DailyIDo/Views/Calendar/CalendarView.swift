@@ -48,6 +48,18 @@ struct CalendarView: View {
                 VStack(spacing: 0) {
                     // Action buttons
                     HStack(alignment: .bottom, spacing: 4) {
+                        // Settings hamburger menu
+                        Button(action: {
+                            HapticManager.shared.buttonTap()
+                            showSettings = true
+                        }) {
+                            Image(systemName: "line.3.horizontal")
+                                .font(.system(size: 20))
+                                .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
+                        }
+                        .frame(width: 44, height: 44, alignment: .bottom)
+                        .offset(x: 8, y: -8)
+
                         // Pro crown badge for free users (disappears after subscribing)
                         if !subscriptionService.isSubscribed {
                             Button(action: {
@@ -154,6 +166,21 @@ struct CalendarView: View {
                                                 showHeartAnimation = true
                                             }
                                         }
+                                    },
+                                    onPreviousTap: {
+                                        viewModel.tapPrevious()
+                                    },
+                                    onNextTap: {
+                                        viewModel.tapNext()
+                                    },
+                                    onFavoriteTap: {
+                                        guard let tip = viewModel.currentTip else { return }
+                                        Task {
+                                            let isFavorited = await favoritesService.toggleFavorite(tipId: tip.id)
+                                            if isFavorited {
+                                                showHeartAnimation = true
+                                            }
+                                        }
                                     }
                                 )
                                 .modifier(TearAwayModifier(
@@ -201,6 +228,12 @@ struct CalendarView: View {
                                         }
                                     }
                             )
+                        }
+                        .overlay(alignment: .topLeading) {
+                            PerforatedEdge()
+                                .frame(height: 16)
+                                .offset(y: 80 - 8) // header height minus half dot height
+                                .allowsHitTesting(false)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(.horizontal, 24)
@@ -633,6 +666,9 @@ struct CalendarPaperContent: View {
     let statusMessage: String
     var isFavorited: Bool = false
     var onDoubleTap: (() -> Void)? = nil
+    var onPreviousTap: (() -> Void)? = nil
+    var onNextTap: (() -> Void)? = nil
+    var onFavoriteTap: (() -> Void)? = nil
 
     private var hasWeddingDate: Bool {
         AuthService.shared.currentUser?.weddingDate != nil
@@ -763,22 +799,26 @@ struct CalendarPaperContent: View {
                 if canTear || canGoBack {
                     HStack(spacing: 16) {
                         if canGoBack {
-                            HStack(spacing: 4) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 9, weight: .medium))
-                                Text("Previous")
-                                    .font(.system(size: 10, weight: .regular))
-                                    .tracking(0.5)
+                            Button(action: { onPreviousTap?() }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "chevron.left")
+                                        .font(.system(size: 9, weight: .medium))
+                                    Text("Previous")
+                                        .font(.system(size: 10, weight: .regular))
+                                        .tracking(0.5)
+                                }
                             }
                         }
 
                         if canTear {
-                            HStack(spacing: 4) {
-                                Text("Next")
-                                    .font(.system(size: 10, weight: .regular))
-                                    .tracking(0.5)
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 9, weight: .medium))
+                            Button(action: { onNextTap?() }) {
+                                HStack(spacing: 4) {
+                                    Text("Next")
+                                        .font(.system(size: 10, weight: .regular))
+                                        .tracking(0.5)
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 9, weight: .medium))
+                                }
                             }
                         }
                     }
@@ -790,11 +830,13 @@ struct CalendarPaperContent: View {
 
             // Favorite heart indicator in upper right corner
             if tip != nil {
-                Image(systemName: isFavorited ? "heart.fill" : "heart")
-                    .font(.system(size: 18))
-                    .foregroundColor(isFavorited ? Color(hex: Constants.Colors.accent) : Color(hex: Constants.Colors.calendarTextMuted))
-                    .padding(12)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isFavorited)
+                Button(action: { onFavoriteTap?() }) {
+                    Image(systemName: isFavorited ? "heart.fill" : "heart")
+                        .font(.system(size: 18))
+                        .foregroundColor(isFavorited ? Color(hex: Constants.Colors.accent) : Color(hex: Constants.Colors.calendarTextMuted))
+                        .padding(12)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isFavorited)
+                }
             }
         }
         .frame(maxWidth: .infinity)
@@ -952,12 +994,8 @@ struct CalendarHeaderView: View {
                         .padding(.trailing, 20)
                 }
             }
-            .frame(height: 68)
+            .frame(height: 80)
 
-            // Perforated edge - centered half over blue header, half over white
-            PerforatedEdge()
-                .frame(height: 12)
-                .offset(y: -6)
         }
         .clipShape(
             UnevenRoundedRectangle(
@@ -1027,8 +1065,8 @@ struct GoldBindingRing: View {
 struct PerforatedEdge: View {
     var body: some View {
         GeometryReader { geometry in
-            let dotSize: CGFloat = 4
-            let spacing: CGFloat = 11
+            let dotSize: CGFloat = 8
+            let spacing: CGFloat = 10
             let totalDotWidth = dotSize + spacing
             let numberOfDots = Int(geometry.size.width / totalDotWidth)
 
@@ -1041,7 +1079,6 @@ struct PerforatedEdge: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
         }
-        .background(Color(hex: Constants.Colors.calendarHeader))
     }
 }
 

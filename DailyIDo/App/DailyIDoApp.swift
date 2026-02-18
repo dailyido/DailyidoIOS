@@ -30,7 +30,8 @@ struct DailyIDoApp: App {
                                     name: user.name,
                                     partnerName: user.partnerName,
                                     weddingDate: user.weddingDate,
-                                    weddingVenue: user.weddingVenue
+                                    weddingVenue: user.weddingVenue,
+                                    weddingTown: user.weddingTown
                                 )
                             }
                         }
@@ -194,6 +195,7 @@ struct MainTabView: View {
             }
 
             trackFirstAppOpen()
+            SubscriptionService.shared.registerAppOpen()
             await checkForRemotePopups()
             checkForInstagramFollowPopup()
         }
@@ -202,6 +204,7 @@ struct MainTabView: View {
             if newPhase == .active {
                 // Reset streak reminder to tomorrow (so today's doesn't fire if user opened app)
                 NotificationService.shared.resetStreakReminderForTomorrow()
+                SubscriptionService.shared.registerSessionStart()
 
                 Task {
                     await checkForRemotePopups()
@@ -232,13 +235,12 @@ struct MainTabView: View {
             return
         }
 
-        guard let user = AuthService.shared.currentUser,
-              let weddingDate = user.weddingDate else {
-            print("DEBUG: No user or wedding date")
+        guard let user = AuthService.shared.currentUser else {
+            print("DEBUG: No user")
             return
         }
 
-        let daysOut = Date().daysUntil(weddingDate)
+        let weddingDate = user.weddingDate
         let today = Date()
 
         do {
@@ -253,39 +255,66 @@ struct MainTabView: View {
                 }
             }
 
-            // Check for holiday popup (date-based)
-            if let holidayPopup = popups.first(where: {
-                $0.popupType == PopupType.holiday.rawValue &&
-                $0.triggerDate != nil &&
-                Calendar.current.isDate($0.triggerDate!, inSameDayAs: today)
-            }) {
-                guard !hasShownPopupToday(holidayPopup.id) else {
-                    print("DEBUG: Holiday popup already shown today, skipping")
+            // Holiday and days_out popups require a wedding date
+            if let weddingDate = weddingDate {
+                // Check for holiday popup (date-based)
+                if let holidayPopup = popups.first(where: {
+                    $0.popupType == PopupType.holiday.rawValue &&
+                    $0.triggerDate != nil &&
+                    Calendar.current.isDate($0.triggerDate!, inSameDayAs: today)
+                }) {
+                    guard !hasShownPopupToday(holidayPopup.id) else {
+                        print("DEBUG: Holiday popup already shown today, skipping")
+                        return
+                    }
+                    print("DEBUG: Found matching holiday popup!")
+                    await MainActor.run {
+                        currentPopup = holidayPopup
+                        showRemotePopup = true
+                        markPopupShownToday(holidayPopup.id)
+                    }
                     return
                 }
-                print("DEBUG: Found matching holiday popup!")
-                await MainActor.run {
-                    currentPopup = holidayPopup
-                    showRemotePopup = true
-                    markPopupShownToday(holidayPopup.id)
+
+                // Check for days_out popup (milestone like "30 days!")
+                let daysOut = Date().daysUntil(weddingDate)
+                if let daysOutPopup = popups.first(where: {
+                    $0.popupType == PopupType.daysOut.rawValue &&
+                    $0.triggerDaysOut == daysOut
+                }) {
+                    guard !hasShownPopupToday(daysOutPopup.id) else {
+                        print("DEBUG: Days-out popup already shown today, skipping")
+                        return
+                    }
+                    print("DEBUG: Found matching days_out popup!")
+                    await MainActor.run {
+                        currentPopup = daysOutPopup
+                        showRemotePopup = true
+                        markPopupShownToday(daysOutPopup.id)
+                    }
+                    return
                 }
-                return
             }
 
-            // Check for days_out popup (milestone like "30 days!")
-            if let daysOutPopup = popups.first(where: {
-                $0.popupType == PopupType.daysOut.rawValue &&
-                $0.triggerDaysOut == daysOut
+            // Check for day_number popup (based on total distinct days used)
+            // Handle race condition: if streak hasn't updated yet today, count today
+            let lastDate = user.lastStreakDate
+            let alreadyCountedToday = lastDate != nil && Calendar.current.isDateInToday(lastDate!)
+            let effectiveDayCount = alreadyCountedToday ? user.totalDaysUsed : user.totalDaysUsed + 1
+
+            if let dayNumberPopup = popups.first(where: {
+                $0.popupType == PopupType.dayNumber.rawValue &&
+                $0.triggerDayNumber == effectiveDayCount
             }) {
-                guard !hasShownPopupToday(daysOutPopup.id) else {
-                    print("DEBUG: Days-out popup already shown today, skipping")
+                guard !hasShownPopupToday(dayNumberPopup.id) else {
+                    print("DEBUG: Day-number popup already shown today, skipping")
                     return
                 }
-                print("DEBUG: Found matching days_out popup!")
+                print("DEBUG: Found matching day_number popup! effectiveDayCount=\(effectiveDayCount)")
                 await MainActor.run {
-                    currentPopup = daysOutPopup
+                    currentPopup = dayNumberPopup
                     showRemotePopup = true
-                    markPopupShownToday(daysOutPopup.id)
+                    markPopupShownToday(dayNumberPopup.id)
                 }
             }
         } catch {

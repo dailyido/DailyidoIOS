@@ -5,6 +5,7 @@ struct RemotePopup: Codable, Identifiable {
     let popupType: String
     let triggerDate: Date?
     let triggerDaysOut: Int?
+    let triggerDayNumber: Int?
     let title: String
     let message: String
     let imageUrl: String?
@@ -18,6 +19,7 @@ struct RemotePopup: Codable, Identifiable {
         case popupType = "popup_type"
         case triggerDate = "trigger_date"
         case triggerDaysOut = "trigger_days_out"
+        case triggerDayNumber = "trigger_day_number"
         case title
         case message
         case imageUrl = "image_url"
@@ -40,6 +42,7 @@ struct RemotePopup: Codable, Identifiable {
         id = try container.decode(UUID.self, forKey: .id)
         popupType = try container.decode(String.self, forKey: .popupType)
         triggerDaysOut = try container.decodeIfPresent(Int.self, forKey: .triggerDaysOut)
+        triggerDayNumber = try container.decodeIfPresent(Int.self, forKey: .triggerDayNumber)
         title = try container.decode(String.self, forKey: .title)
         message = try container.decode(String.self, forKey: .message)
         imageUrl = try container.decodeIfPresent(String.self, forKey: .imageUrl)
@@ -60,11 +63,12 @@ struct RemotePopup: Codable, Identifiable {
     }
 
     // For previews and testing
-    init(id: UUID, popupType: String, triggerDate: Date?, triggerDaysOut: Int?, title: String, message: String, imageUrl: String?, illustrationUrl: String? = nil, ctaText: String?, ctaAction: String?, isActive: Bool) {
+    init(id: UUID, popupType: String, triggerDate: Date?, triggerDaysOut: Int?, triggerDayNumber: Int? = nil, title: String, message: String, imageUrl: String?, illustrationUrl: String? = nil, ctaText: String?, ctaAction: String?, isActive: Bool) {
         self.id = id
         self.popupType = popupType
         self.triggerDate = triggerDate
         self.triggerDaysOut = triggerDaysOut
+        self.triggerDayNumber = triggerDayNumber
         self.title = title
         self.message = message
         self.imageUrl = imageUrl
@@ -78,5 +82,6 @@ struct RemotePopup: Codable, Identifiable {
 enum PopupType: String {
     case holiday
     case daysOut = "days_out"
+    case dayNumber = "day_number"
     case custom
 }

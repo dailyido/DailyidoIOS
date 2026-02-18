@@ -745,6 +745,36 @@ final class CalendarViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Tap Navigation
+
+    func tapNext() {
+        guard canTear, !isTearing else { return }
+        Task {
+            let canProceed = await checkAndShowPaywallIfNeeded()
+            await MainActor.run {
+                if canProceed {
+                    completeTear()
+                }
+            }
+        }
+    }
+
+    func tapPrevious() {
+        guard !isTearing else { return }
+        if canGoBack {
+            completeGoBack()
+        } else if isAtSwipeBackLimit {
+            Task {
+                await subscriptionService.showSwipeBackLimitPaywall()
+                await MainActor.run {
+                    if subscriptionService.isSubscribed {
+                        completeGoBack()
+                    }
+                }
+            }
+        }
+    }
+
     private func cancelTear() {
         HapticManager.shared.tearCancel()
 

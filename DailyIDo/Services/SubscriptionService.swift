@@ -39,8 +39,7 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
         // Configure RevenueCat first
         Purchases.logLevel = .debug
         Purchases.configure(withAPIKey: Constants.revenueCatAPIKey)
-        Purchases.shared.delegate = self
-        print("🔧 [SubscriptionService] RevenueCat configured (with delegate)")
+        print("🔧 [SubscriptionService] RevenueCat configured")
 
         // Create purchase controller for Superwall + RevenueCat integration
         let controller = RCPurchaseController()
@@ -56,6 +55,11 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
             options: options
         )
         print("🔧 [SubscriptionService] Superwall configured")
+
+        // Set delegate AFTER Superwall is configured, since the delegate
+        // callback references Superwall.shared and fires immediately
+        Purchases.shared.delegate = self
+        print("🔧 [SubscriptionService] RevenueCat delegate set")
 
         // Set initial subscription status to inactive (will be updated after check)
         // This prevents Superwall from timing out waiting for "unknown" status
@@ -135,6 +139,22 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
         Superwall.shared.register(event: event)
     }
 
+    func registerAppOpen() {
+        Superwall.shared.register(event: Constants.SuperwallEvents.appOpen)
+    }
+
+    func registerSessionStart() {
+        Superwall.shared.register(event: Constants.SuperwallEvents.sessionStart)
+    }
+
+    func registerFeatureLocked() {
+        Superwall.shared.register(event: Constants.SuperwallEvents.featureLocked)
+    }
+
+    func registerPaywallDeclined() {
+        Superwall.shared.register(event: Constants.SuperwallEvents.paywallDeclined)
+    }
+
     func showOnboardingPaywall() async {
         print("🎯 [Superwall] ========================================")
         print("🎯 [Superwall] Triggering event: \(Constants.SuperwallEvents.onboardingComplete)")
@@ -150,6 +170,7 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
         }
         // Check subscription status after paywall dismisses
         await checkSubscriptionStatus()
+        if !isSubscribed { registerPaywallDeclined() }
     }
 
     func showTipLimitPaywall() async {
@@ -166,6 +187,7 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
         }
         // Check subscription status after paywall dismisses
         await checkSubscriptionStatus()
+        if !isSubscribed { registerPaywallDeclined() }
     }
 
     /// Shows a hard paywall that cannot be dismissed (free trial ended after 3 days)
@@ -187,6 +209,8 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
 
     /// Shows paywall when pro badge/crown is tapped
     func showProBadgePaywall() async {
+        registerFeatureLocked()
+
         print("🎯 [Superwall] ========================================")
         print("🎯 [Superwall] Triggering event: \(Constants.SuperwallEvents.proBadgeTapped)")
         print("🎯 [Superwall] User isSubscribed: \(isSubscribed)")
@@ -200,6 +224,7 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
         }
         // Check subscription status after paywall dismisses
         await checkSubscriptionStatus()
+        if !isSubscribed { registerPaywallDeclined() }
     }
 
     /// Shows paywall when free user tries to swipe back past their limit
@@ -212,6 +237,8 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
             print("🎯 [Superwall] User already subscribed, skipping swipe_back_limit_reached paywall")
             return
         }
+
+        registerFeatureLocked()
 
         print("🎯 [Superwall] ========================================")
         print("🎯 [Superwall] Triggering event: \(Constants.SuperwallEvents.swipeBackLimitReached)")
@@ -226,6 +253,7 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
         }
         // Check subscription status after paywall dismisses
         await checkSubscriptionStatus()
+        if !isSubscribed { registerPaywallDeclined() }
     }
 
     func restorePurchases() async throws {
@@ -276,7 +304,7 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
     }
 
     /// Set subscriber attributes in RevenueCat for easy identification
-    func setUserAttributes(name: String?, partnerName: String?, weddingDate: Date?, weddingVenue: String? = nil) {
+    func setUserAttributes(name: String?, partnerName: String?, weddingDate: Date?, weddingVenue: String? = nil, weddingTown: String? = nil, referralSource: String? = nil) {
         var attributes: [String: String] = [:]
 
         if let name = name, !name.isEmpty {
@@ -296,6 +324,14 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
 
         if let weddingVenue = weddingVenue, !weddingVenue.isEmpty {
             attributes["wedding_venue"] = weddingVenue
+        }
+
+        if let weddingTown = weddingTown, !weddingTown.isEmpty {
+            attributes["wedding_town"] = weddingTown
+        }
+
+        if let referralSource = referralSource, !referralSource.isEmpty {
+            attributes["referral_source"] = referralSource
         }
 
         // Set all custom attributes

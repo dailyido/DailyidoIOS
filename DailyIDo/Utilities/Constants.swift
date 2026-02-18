@@ -28,11 +28,15 @@ enum Constants {
         static let freeTrialEnded = "free_trial_ended"  // Hard paywall after 3 days
         static let proBadgeTapped = "pro_badge_tapped"  // Crown icon on calendar
         static let swipeBackLimitReached = "swipe_back_limit_reached"  // Free user tried to swipe back past 7 days
+        static let appOpen = "app_open"
+        static let sessionStart = "session_start"
+        static let featureLocked = "feature_locked"
+        static let paywallDeclined = "paywall_declined"
     }
 
     // RevenueCat Entitlements
     enum Entitlements {
-        static let premium = "pro"
+        static let premium = "Pro"
     }
 
     // User Defaults Keys

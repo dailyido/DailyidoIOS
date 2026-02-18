@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import WebKit
+import UserNotifications
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
@@ -9,6 +10,8 @@ struct SettingsView: View {
     @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isDatePickerExpanded = false
+    @StateObject private var notificationService = NotificationService.shared
+    @State private var notificationsDenied = false
     var onDone: (() -> Void)?
     var onRestartTutorial: (() -> Void)?
 
@@ -206,6 +209,50 @@ struct SettingsView: View {
                         // Actions Section
                         SettingsSection(title: "Actions") {
                             VStack(spacing: 0) {
+                                // Push notifications row
+                                if notificationService.isAuthorized {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "bell.badge.fill")
+                                            .font(.system(size: 18))
+                                            .foregroundColor(Color(hex: Constants.Colors.primaryText))
+                                            .frame(width: 28)
+
+                                        Text("Daily Reminders")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Color(hex: Constants.Colors.primaryText))
+
+                                        Spacer()
+
+                                        Text("On")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                                    }
+                                    .padding(.vertical, 14)
+                                } else {
+                                    SettingsActionRow(
+                                        icon: "bell.badge",
+                                        title: "Enable Daily Reminders"
+                                    ) {
+                                        Task {
+                                            let settings = await UNUserNotificationCenter.current().notificationSettings()
+                                            if settings.authorizationStatus == .denied {
+                                                // Already denied — must go to iOS Settings
+                                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                                    await UIApplication.shared.open(url)
+                                                }
+                                            } else {
+                                                let granted = await notificationService.requestAuthorization()
+                                                if granted {
+                                                    notificationService.scheduleStreakReminder()
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Divider()
+                                    .padding(.leading, 44)
+
                                 SettingsActionRow(
                                     icon: "person.2.fill",
                                     title: "Meet the Planners"
@@ -298,7 +345,7 @@ struct SettingsView: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText))
 
-                            Text("Version 1.0.0")
+                            Text("Version 1.2")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
                         }

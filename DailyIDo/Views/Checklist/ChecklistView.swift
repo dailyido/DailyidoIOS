@@ -80,17 +80,6 @@ struct ChecklistView: View {
                     EmptyView()
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        HapticManager.shared.buttonTap()
-                        showSettings = true
-                    }) {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundColor(Color(hex: Constants.Colors.secondaryText))
-                    }
-                }
-            }
             .sheet(isPresented: $showSettings) {
                 SettingsView(onDone: {
                     showSettings = false
