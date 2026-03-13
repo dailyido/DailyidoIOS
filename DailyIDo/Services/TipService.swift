@@ -6,6 +6,7 @@ final class TipService: ObservableObject {
     @Published var tips: [Tip] = []
     @Published var funTips: [FunTip] = []
     @Published var criticalTips: [Tip] = []  // First 50 tips for long engagements
+    @Published var curatedFirstTimeTips: [Tip] = []  // Curated tips for first-time users, sorted by sequence
     @Published var isLoading = true
 
     private let supabase = SupabaseService.shared
@@ -44,6 +45,7 @@ final class TipService: ObservableObject {
         // Fail gracefully so regular tips still work
         var fetchedFunTips: [FunTip] = []
         var fetchedCriticalTips: [Tip] = []
+        var fetchedCuratedTips: [Tip] = []
 
         do {
             fetchedFunTips = try await supabase.fetchAllFunTips()
@@ -57,10 +59,17 @@ final class TipService: ObservableObject {
             print("⚠️ Could not fetch critical tips: \(error.localizedDescription)")
         }
 
+        do {
+            fetchedCuratedTips = try await supabase.fetchCuratedFirstTimeTips()
+        } catch {
+            print("⚠️ Could not fetch curated first-time tips: \(error.localizedDescription)")
+        }
+
         await MainActor.run {
             self.tips = fetchedTips
             self.funTips = fetchedFunTips
             self.criticalTips = fetchedCriticalTips
+            self.curatedFirstTimeTips = fetchedCuratedTips
             self.isLoading = false
         }
     }
@@ -94,6 +103,11 @@ final class TipService: ObservableObject {
     ///   - daysUntilWedding: The day being displayed (displayedDaysOut)
     ///   - actualDaysUntilWedding: The real current day (optional, used for first-time user logic)
     func getTipForDay(user: User, daysUntilWedding: Int, actualDaysUntilWedding: Int? = nil) -> Tip? {
+        // CURATED FIRST-TIME TIPS: Override normal logic for new users
+        if let curatedTip = getCuratedFirstTimeTip(user: user, daysUntilWedding: daysUntilWedding) {
+            return curatedTip
+        }
+
         // BYPASS: Skip all fun tips logic and use simple tip selection
         if bypassFunTipsLogic {
             // Try direct lookup first
@@ -161,6 +175,41 @@ final class TipService: ObservableObject {
         return criticalTips[max(0, tipIndex)]
     }
 
+    // MARK: - Curated First-Time Tips
+
+    /// Returns a curated tip for first-time users based on their position in the onboarding sequence.
+    /// The sequence number maps to the user's swipe position relative to their starting point:
+    ///   Sequence 1 = furthest back they can swipe (+6 from actual day)
+    ///   Sequence 5 = starting position (+3, first page they see)
+    ///   Sequence 8 = today (day 0)
+    ///   Sequence 14 = 6 days into free trial
+    /// Returns nil if the user is past the curated window or no curated tips are configured.
+    private func getCuratedFirstTimeTip(user: User, daysUntilWedding: Int) -> Tip? {
+        guard !curatedFirstTimeTips.isEmpty,
+              let initialDays = user.initialDaysUntilWedding else {
+            return nil
+        }
+
+        // Calculate which sequence position this page corresponds to.
+        // Starting position is initialDays + 3 (3 days back from actual day at signup).
+        // Sequence 1 starts at initialDays + 6 (furthest back: +6 from actual day).
+        // So: sequence = (initialDays + 6) - daysUntilWedding + 1
+        let sequence = (initialDays + 6) - daysUntilWedding + 1
+
+        // Outside the curated window
+        guard sequence >= 1 && sequence <= curatedFirstTimeTips.count else {
+            return nil
+        }
+
+        // Find the tip with this sequence number
+        if let tip = curatedFirstTimeTips.first(where: { $0.firstTimeSequence == sequence }) {
+            print("DEBUG TipService: Curated first-time tip sequence \(sequence) for day \(daysUntilWedding): \(tip.title)")
+            return tip
+        }
+
+        return nil
+    }
+
     // MARK: - Long Engagement Logic (>420 days)
 
     private func getTipForLongEngagement(user: User, daysUntilWedding: Int, actualDaysUntilWedding: Int?) -> Tip? {
@@ -172,10 +221,13 @@ final class TipService: ObservableObject {
             return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
         }
 
-        // PRIORITY 1 TIP ON "TODAY": When user catches up to today, always show a priority 1 tip
-        // This applies to users without a wedding date or any long engagement user who reaches today
-        if let actual = actualDaysUntilWedding, daysUntilWedding == actual {
-            print("DEBUG TipService: User caught up to today (day \(actual)), showing priority 1 tip")
+        // FIRST-TIME USER ONBOARDING: When a brand new user swipes through to their actual
+        // current day for the first time, show a priority-1 tip so they land on meaningful content.
+        // Only fires on day 1 (totalDaysUsed <= 1) to avoid repeating the same tip every app open.
+        if user.totalDaysUsed <= 1,
+           let actual = actualDaysUntilWedding,
+           daysUntilWedding == actual {
+            print("DEBUG TipService: First-time user caught up to today (day \(actual)), showing priority 1 tip")
             if let priority1Tip = getFirstPriority1MasterTip(isTentedWedding: user.isTentedWedding) {
                 return priority1Tip
             }
@@ -184,10 +236,7 @@ final class TipService: ObservableObject {
         guard let initialDays = user.initialDaysUntilWedding, initialDays > longEngagementThreshold else {
             print("DEBUG TipService: initialDaysUntilWedding not set or <= threshold, using fun tip for day \(daysUntilWedding)")
             // Fallback if initialDaysUntilWedding not set - show deterministic fun tip
-            if let funTip = getFunTipForDay(daysUntilWedding)?.toTip() {
-                return funTip
-            }
-            return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
+            return getFallbackTip(user: user, daysUntilWedding: daysUntilWedding)
         }
 
         // Calculate total days in "long engagement" phase
@@ -198,19 +247,13 @@ final class TipService: ObservableObject {
 
         // We need to spread 50 critical tips across totalLongEngagementDays
         guard totalLongEngagementDays > 0 else {
-            if let funTip = getFunTipForDay(daysUntilWedding)?.toTip() {
-                return funTip
-            }
-            return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
+            return getFallbackTip(user: user, daysUntilWedding: daysUntilWedding)
         }
 
         // If viewing days BEFORE registration (negative phase), always show fun tips
         // Critical tips are only for days after user started using the app
         if currentDayInPhase < 0 {
-            if let funTip = getFunTipForDay(daysUntilWedding)?.toTip() {
-                return funTip
-            }
-            return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
+            return getFallbackTip(user: user, daysUntilWedding: daysUntilWedding)
         }
 
         let tipsPerDay = 50.0 / Double(totalLongEngagementDays)
@@ -228,20 +271,46 @@ final class TipService: ObservableObject {
             // Filter for tented wedding if applicable
             if !user.isTentedWedding && tip.weddingType == "tented" {
                 // Skip tented-specific tips for non-tented weddings, show fun tip instead
-                if let funTip = getFunTipForDay(daysUntilWedding)?.toTip() {
-                    return funTip
-                }
-                return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
+                return getFallbackTip(user: user, daysUntilWedding: daysUntilWedding)
             }
 
+            print("DEBUG TipService: Day \(daysUntilWedding) is critical tip day - index \(criticalTipIndex): \(tip.title)")
             return tip
         }
 
-        // Otherwise, show a deterministic fun tip for this day
+        // Non-critical day: show a fun tip or deterministic critical tip
+        return getFallbackTip(user: user, daysUntilWedding: daysUntilWedding)
+    }
+
+    /// Get a varied tip for non-critical days in long engagements.
+    /// Tries fun tips first, then falls back to deterministic critical tip selection
+    /// to ensure every day shows a different tip.
+    private func getFallbackTip(user: User, daysUntilWedding: Int) -> Tip? {
+        // Try fun tip first
         if let funTip = getFunTipForDay(daysUntilWedding)?.toTip() {
             return funTip
         }
+        // If no fun tips, use hash-based critical tip selection for variety
+        if let criticalTip = getDeterministicCriticalTip(daysUntilWedding: daysUntilWedding, isTentedWedding: user.isTentedWedding) {
+            return criticalTip
+        }
         return getTipForNormalEngagement(user: user, daysUntilWedding: daysUntilWedding)
+    }
+
+    /// Deterministic critical tip selection using hash - ensures different tips on different days.
+    /// Used as fallback when fun tips aren't available.
+    private func getDeterministicCriticalTip(daysUntilWedding: Int, isTentedWedding: Bool) -> Tip? {
+        let filtered = criticalTips.filter { tip in
+            isTentedWedding ? true : tip.weddingType != "tented"
+        }
+        guard !filtered.isEmpty else { return nil }
+
+        // Use Knuth's multiplicative hash to spread selection across the pool
+        let hash = abs(daysUntilWedding &* 2654435761)
+        let index = hash % filtered.count
+        let tip = filtered[index]
+        print("DEBUG TipService: Day \(daysUntilWedding) - deterministic critical tip index \(index) of \(filtered.count): \(tip.title)")
+        return tip
     }
 
     // MARK: - Normal Engagement Logic (≤420 days)

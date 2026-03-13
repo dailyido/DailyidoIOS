@@ -127,12 +127,19 @@ final class CalendarViewModel: ObservableObject {
         displayedDaysOut > actualDaysUntilWedding + 5
     }
 
-    // Jump directly to today's tip
+    // Jump directly to today's tip (with paywall check for unsubscribed users)
     func jumpToToday() {
-        displayedDaysOut = actualDaysUntilWedding
-        updateCurrentTip()
         Task {
-            await saveLastViewedDay(displayedDaysOut)
+            let canProceed = await checkAndShowPaywallIfNeeded()
+            await MainActor.run {
+                if canProceed {
+                    displayedDaysOut = actualDaysUntilWedding
+                    updateCurrentTip()
+                    Task {
+                        await saveLastViewedDay(displayedDaysOut)
+                    }
+                }
+            }
         }
     }
 
@@ -141,6 +148,12 @@ final class CalendarViewModel: ObservableObject {
     func checkAndShowPaywallIfNeeded() async -> Bool {
         // If subscribed, always allow
         if user?.isSubscribed == true || subscriptionService.isSubscribed {
+            return true
+        }
+
+        // Fresh check with RevenueCat before showing any paywall
+        await subscriptionService.checkSubscriptionStatus()
+        if subscriptionService.isSubscribed {
             return true
         }
 
@@ -270,20 +283,11 @@ final class CalendarViewModel: ObservableObject {
             Task {
                 await saveLastViewedDay(displayedDaysOut)
             }
-        } else if isNewDay {
-            // Returning user on a new day: reset to yesterday so they swipe once to see today
-            displayedDaysOut = actualDaysUntilWedding + 1
-            isFirstDay = false
-            print("DEBUG CalendarVM: returning user, new day - resetting to yesterday = \(displayedDaysOut)")
-
-            Task {
-                await saveLastViewedDay(displayedDaysOut)
-            }
         } else if let lastViewedDay = user.lastViewedDay {
-            // Same day: restore saved position
+            // Returning user: stay on last viewed day so they swipe forward through any backlog
             displayedDaysOut = lastViewedDay
             isFirstDay = false
-            print("DEBUG CalendarVM: same day - using lastViewedDay = \(lastViewedDay)")
+            print("DEBUG CalendarVM: returning user - restoring lastViewedDay = \(lastViewedDay)")
         } else {
             // Fallback: start 3 days back
             displayedDaysOut = actualDaysUntilWedding + 3

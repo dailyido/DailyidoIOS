@@ -252,6 +252,19 @@ final class SupabaseService {
             .execute()
     }
 
+    func fetchCuratedFirstTimeTips() async throws -> [Tip] {
+        let response: [Tip] = try await client
+            .from("wedding_tips")
+            .select()
+            .eq("is_active", value: true)
+            .not("first_time_sequence", operator: .is, value: "null")
+            .order("first_time_sequence", ascending: true)
+            .execute()
+            .value
+
+        return response
+    }
+
     func fetchFirst50CriticalTips() async throws -> [Tip] {
         let response: [Tip] = try await client
             .from("wedding_tips")

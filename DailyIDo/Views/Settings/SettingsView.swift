@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var isDatePickerExpanded = false
     @StateObject private var notificationService = NotificationService.shared
     @State private var notificationsDenied = false
+    @State private var showEnableRemindersConfirm = false
     var onDone: (() -> Void)?
     var onRestartTutorial: (() -> Void)?
 
@@ -211,23 +212,12 @@ struct SettingsView: View {
                             VStack(spacing: 0) {
                                 // Push notifications row
                                 if notificationService.isAuthorized {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "bell.badge.fill")
-                                            .font(.system(size: 18))
-                                            .foregroundColor(Color(hex: Constants.Colors.primaryText))
-                                            .frame(width: 28)
-
-                                        Text("Daily Reminders")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(Color(hex: Constants.Colors.primaryText))
-
-                                        Spacer()
-
-                                        Text("On")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                                    SettingsActionRow(
+                                        icon: "bell.badge.fill",
+                                        title: "Daily Reminders"
+                                    ) {
+                                        notificationService.disableReminders()
                                     }
-                                    .padding(.vertical, 14)
                                 } else {
                                     SettingsActionRow(
                                         icon: "bell.badge",
@@ -240,7 +230,11 @@ struct SettingsView: View {
                                                 if let url = URL(string: UIApplication.openSettingsURLString) {
                                                     await UIApplication.shared.open(url)
                                                 }
+                                            } else if settings.authorizationStatus == .authorized {
+                                                // Previously granted but turned off in-app — confirm re-enable
+                                                showEnableRemindersConfirm = true
                                             } else {
+                                                // First time — show iOS system prompt
                                                 let granted = await notificationService.requestAuthorization()
                                                 if granted {
                                                     notificationService.scheduleStreakReminder()
@@ -345,7 +339,7 @@ struct SettingsView: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText))
 
-                            Text("Version 1.2")
+                            Text("Version 1.2 (3)")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
                         }
@@ -381,6 +375,15 @@ struct SettingsView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(viewModel.errorMessage)
+            }
+            .alert("Enable Daily Reminders?", isPresented: $showEnableRemindersConfirm) {
+                Button("Enable") {
+                    notificationService.isAuthorized = true
+                    notificationService.scheduleStreakReminder()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("You'll receive a daily reminder to check your wedding tip.")
             }
             .sheet(isPresented: $showMeetThePlanners) {
                 MeetThePlannersView()

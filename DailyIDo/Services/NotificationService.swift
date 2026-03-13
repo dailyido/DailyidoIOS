@@ -179,6 +179,12 @@ final class NotificationService: ObservableObject {
         }
     }
 
+    /// Disable all daily reminders and update authorization state
+    func disableReminders() {
+        cancelAllNotifications()
+        isAuthorized = false
+    }
+
     /// Cancel the streak reminder (call when user opens the app)
     func cancelStreakReminder() {
         center.removePendingNotificationRequests(withIdentifiers: [Constants.NotificationIdentifiers.streakReminder])

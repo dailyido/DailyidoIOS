@@ -297,7 +297,21 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
     }
 
     func identifyUser(userId: String) {
-        Purchases.shared.logIn(userId) { _, _, _ in }
+        Purchases.shared.logIn(userId) { [weak self] customerInfo, _, error in
+            guard let self = self, error == nil, let customerInfo = customerInfo else { return }
+            let isPremium = customerInfo.entitlements[Constants.Entitlements.premium]?.isActive == true
+            print("💳 [Subscription] identifyUser login complete: entitlement active = \(isPremium)")
+
+            if isPremium {
+                Superwall.shared.subscriptionStatus = .active
+            } else {
+                Superwall.shared.subscriptionStatus = .inactive
+            }
+
+            Task { @MainActor in
+                self.isSubscribed = isPremium
+            }
+        }
 
         // Identify user in Superwall
         Superwall.shared.identify(userId: userId)

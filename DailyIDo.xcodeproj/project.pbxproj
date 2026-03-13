@@ -11,6 +11,7 @@
 		0B4152402F2AB30C0055B285 /* URLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B41523F2F2AB30C0055B285 /* URLHelper.swift */; };
 		0B55C31C2F156CEF002450AC /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 0B55C31B2F156CEF002450AC /* Configuration.storekit */; };
 		0B55C31E2F156E65002450AC /* RCPurchaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55C31D2F156E65002450AC /* RCPurchaseController.swift */; };
+		0B626CE92F509D2B0090045F /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B626CE82F509D2B0090045F /* AppUpdateService.swift */; };
 		0BE0DB7C2F08724900E9A51F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = G100000001 /* Supabase */; };
 		0BE0DB7D2F08724900E9A51F /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = G100000002 /* RevenueCat */; };
 		0BE0DB7E2F08724900E9A51F /* SuperwallKit in Frameworks */ = {isa = PBXBuildFile; productRef = G100000003 /* SuperwallKit */; };
@@ -88,6 +89,7 @@
 		0B41523F2F2AB30C0055B285 /* URLHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLHelper.swift; sourceTree = "<group>"; };
 		0B55C31B2F156CEF002450AC /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		0B55C31D2F156E65002450AC /* RCPurchaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RCPurchaseController.swift; sourceTree = "<group>"; };
+		0B626CE82F509D2B0090045F /* AppUpdateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateService.swift; sourceTree = "<group>"; };
 		0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Regular.ttf"; sourceTree = "<group>"; };
 		0BE0DB822F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CormorantGaramond-Bold.ttf"; sourceTree = "<group>"; };
 		15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InstagramSharingService.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 		D100000006 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				0B626CE82F509D2B0090045F /* AppUpdateService.swift */,
 				0B4152352F23F4AC0055B285 /* AnalyticsService.swift */,
 				B100000008 /* SupabaseService.swift */,
 				B100000009 /* AuthService.swift */,
@@ -466,6 +469,7 @@
 				A100000060 /* RandomIllustrationService.swift in Sources */,
 				A100000012 /* NotificationService.swift in Sources */,
 				A100000013 /* LocationService.swift in Sources */,
+				0B626CE92F509D2B0090045F /* AppUpdateService.swift in Sources */,
 				A100000014 /* SunsetService.swift in Sources */,
 				A100000015 /* SubscriptionService.swift in Sources */,
 				A100000016 /* Constants.swift in Sources */,
@@ -664,7 +668,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dailyido.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -695,7 +699,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dailyido.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

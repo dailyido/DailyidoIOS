@@ -16,6 +16,7 @@ struct Tip: Codable, Identifiable, Equatable {
     let weddingType: String?
     let isActive: Bool
     let funTip: Bool
+    let firstTimeSequence: Int?
     let createdAt: Date?
 
     enum CodingKeys: String, CodingKey {
@@ -34,6 +35,7 @@ struct Tip: Codable, Identifiable, Equatable {
         case weddingType = "wedding_type"
         case isActive = "is_active"
         case funTip = "fun_tip"
+        case firstTimeSequence = "first_time_sequence"
         case createdAt = "created_at"
     }
 
@@ -57,13 +59,14 @@ struct Tip: Codable, Identifiable, Equatable {
         isActive = try container.decode(Bool.self, forKey: .isActive)
         // Default to false if fun_tip column doesn't exist in database yet
         funTip = try container.decodeIfPresent(Bool.self, forKey: .funTip) ?? false
+        firstTimeSequence = try container.decodeIfPresent(Int.self, forKey: .firstTimeSequence)
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
     }
 
     init(id: UUID, title: String, tipText: String, hasIllustration: Bool, illustrationUrl: String?,
          category: String?, monthCategory: String?, specificDay: Int?, priority: Int, onChecklist: Bool,
          affiliateUrl: String?, affiliateButtonText: String?, weddingType: String?,
-         isActive: Bool, funTip: Bool, createdAt: Date?) {
+         isActive: Bool, funTip: Bool, firstTimeSequence: Int? = nil, createdAt: Date?) {
         self.id = id
         self.title = title
         self.tipText = tipText
@@ -79,6 +82,7 @@ struct Tip: Codable, Identifiable, Equatable {
         self.weddingType = weddingType
         self.isActive = isActive
         self.funTip = funTip
+        self.firstTimeSequence = firstTimeSequence
         self.createdAt = createdAt
     }
 

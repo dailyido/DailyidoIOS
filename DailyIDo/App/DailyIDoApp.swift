@@ -79,6 +79,8 @@ struct MainTabView: View {
     @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
     @State private var showTutorial = false
     @State private var showInstagramPopup = false
+    @State private var showUpdatePopup = false
+    @State private var updateVersion: String = ""
 
     // Check if tutorial should show
     private var shouldShowTutorial: Bool {
@@ -159,6 +161,35 @@ struct MainTabView: View {
                 )
             }
 
+            // App update popup
+            if showUpdatePopup {
+                RemotePopupView(
+                    popup: RemotePopup(
+                        id: UUID(),
+                        popupType: "custom",
+                        triggerDate: nil,
+                        triggerDaysOut: nil,
+                        title: "Update Available!",
+                        message: "A new version of Daily I Do is here with the latest features and improvements. Update now to get the best experience!",
+                        imageUrl: nil,
+                        illustrationUrl: nil,
+                        ctaText: "Update Now",
+                        ctaAction: "https://apps.apple.com/app/id6757710079",
+                        isActive: true
+                    ),
+                    onDismiss: {
+                        showUpdatePopup = false
+                        AppUpdateService.markVersionPrompted(updateVersion)
+                    },
+                    onCTATap: {
+                        if let url = URL(string: "https://apps.apple.com/app/id6757710079") {
+                            UIApplication.shared.open(url)
+                        }
+                        AppUpdateService.markVersionPrompted(updateVersion)
+                    }
+                )
+            }
+
             // Instagram follow popup (5 days after first use)
             if showInstagramPopup {
                 RemotePopupView(
@@ -197,6 +228,7 @@ struct MainTabView: View {
             trackFirstAppOpen()
             SubscriptionService.shared.registerAppOpen()
             await checkForRemotePopups()
+            await checkForAppUpdate()
             checkForInstagramFollowPopup()
         }
         // Handle app becoming active
@@ -319,6 +351,20 @@ struct MainTabView: View {
             }
         } catch {
             print("DEBUG Error fetching remote popups: \(error)")
+        }
+    }
+
+    /// Check if a newer version is available on the App Store
+    private func checkForAppUpdate() async {
+        // Don't show if another popup is already showing
+        guard !showRemotePopup, !showInstagramPopup, !showTutorial,
+              streakService.showingMilestone == nil else { return }
+
+        if let newVersion = await AppUpdateService.checkForUpdate() {
+            await MainActor.run {
+                updateVersion = newVersion
+                showUpdatePopup = true
+            }
         }
     }
 

@@ -392,11 +392,8 @@ struct CalendarView: View {
             }
         }
         .sheet(isPresented: $showSettings, onDismiss: {
-            // Refresh calendar data when settings is dismissed (in case wedding date changed)
-            viewModel.isLoading = true
-            Task {
-                await viewModel.loadData()
-            }
+            // Smart refresh - only reloads if wedding date changed or day crossed midnight
+            viewModel.refreshIfNeeded()
         }) {
             SettingsView(onDone: {
                 showSettings = false
