@@ -56,6 +56,11 @@ struct TutorialView: View {
                 description: "Tap the bell icon to save a tip to your Apple Reminders so you remember important tasks."
             ),
             TutorialStep(
+                icon: "phone.fill",
+                title: "Talk to a Real Planner",
+                description: "Need a hand? You can book a one-on-one call with a real wedding planner anytime—just go to Settings and tap \"Book a Call with a Planner.\""
+            ),
+            TutorialStep(
                 icon: "calendar.badge.clock",
                 title: "Test it Out!",
                 description: "We're starting you a few days back so you can swipe through and catch up to today. Each day unlocks a new wedding tip!"

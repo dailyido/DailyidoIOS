@@ -392,6 +392,7 @@
 				G100000002 /* RevenueCat */,
 				G100000003 /* SuperwallKit */,
 				G100000004 /* Solar */,
+				G100000005 /* Paydirt */,
 			);
 			productName = DailyIDo;
 			productReference = B100000000 /* DailyIDo.app */;
@@ -426,6 +427,7 @@
 				H100000002 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 				H100000003 /* XCRemoteSwiftPackageReference "Superwall-iOS" */,
 				H100000004 /* XCRemoteSwiftPackageReference "Solar" */,
+				H100000005 /* XCRemoteSwiftPackageReference "paydirt-ios" */,
 			);
 			productRefGroup = D100000003 /* Products */;
 			projectDirPath = "";
@@ -653,7 +655,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;
@@ -668,7 +670,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dailyido.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -684,7 +686,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 5RRR83AS63;
 				ENABLE_PREVIEWS = YES;
@@ -699,7 +701,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dailyido.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -742,10 +744,10 @@
 		};
 		H100000002 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RevenueCat/purchases-ios";
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.0;
+				minimumVersion = 5.0.0;
 			};
 		};
 		H100000003 /* XCRemoteSwiftPackageReference "Superwall-iOS" */ = {
@@ -762,6 +764,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 3.0.0;
+			};
+		};
+		H100000005 /* XCRemoteSwiftPackageReference "paydirt-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Paydirt-AI/paydirt-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -786,6 +796,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = H100000004 /* XCRemoteSwiftPackageReference "Solar" */;
 			productName = Solar;
+		};
+		G100000005 /* Paydirt */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = H100000005 /* XCRemoteSwiftPackageReference "paydirt-ios" */;
+			productName = Paydirt;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,4 +1,5 @@
 import SwiftUI
+import Paydirt
 
 @main
 struct DailyIDoApp: App {
@@ -227,6 +228,11 @@ struct MainTabView: View {
 
             trackFirstAppOpen()
             SubscriptionService.shared.registerAppOpen()
+
+            // Refresh subscription status (also syncs Superwall). Cancellation forms
+            // are handled automatically by PaydirtRevenueCatAdapter.
+            await SubscriptionService.shared.checkSubscriptionStatus()
+
             await checkForRemotePopups()
             await checkForAppUpdate()
             checkForInstagramFollowPopup()
@@ -241,6 +247,8 @@ struct MainTabView: View {
                 Task {
                     await checkForRemotePopups()
                 }
+                // Cancellation forms are handled automatically by
+                // PaydirtRevenueCatAdapter, which re-checks on didBecomeActive.
             }
         }
     }

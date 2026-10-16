@@ -1,13 +1,22 @@
 {
-  "originHash" : "6c9ef1f9a33e6b83b0ab74c860455d40177f347fa592320bcda36df9caacc28a",
+  "originHash" : "cca3563fdef447467780ae7b83738e731d4f72f9cb2227e3e63c5eb5a6b9b87b",
   "pins" : [
     {
-      "identity" : "purchases-ios",
+      "identity" : "paydirt-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/RevenueCat/purchases-ios",
+      "location" : "https://github.com/Paydirt-AI/paydirt-ios",
       "state" : {
-        "revision" : "5f7fa0b5c3324ae763365c08e61f29692d18454b",
-        "version" : "4.44.2"
+        "revision" : "4935c1941f6349ef0a20aad278d8c37178babf24",
+        "version" : "2.0.1"
+      }
+    },
+    {
+      "identity" : "purchases-ios-spm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RevenueCat/purchases-ios-spm.git",
+      "state" : {
+        "revision" : "e2524b647f9b7dd81297cf7e2e51516f46f62b26",
+        "version" : "5.82.0"
       }
     },
     {
