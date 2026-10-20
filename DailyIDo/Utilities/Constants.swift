@@ -61,7 +61,7 @@ enum Constants {
 
     // Web Links
     enum WebLinks {
-        // TODO: Replace with the real Calendly landing page URL
+        // Book-a-call landing page on thedailyido.com (links out to each planner's Calendly)
         static let bookACall = "https://www.thedailyido.com/book-a-call"
     }
 
