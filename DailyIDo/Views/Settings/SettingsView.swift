@@ -350,7 +350,7 @@ struct SettingsView: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText))
 
-                            Text("Version 1.3 (3)")
+                            Text("Version 1.4 (3)")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
                         }
