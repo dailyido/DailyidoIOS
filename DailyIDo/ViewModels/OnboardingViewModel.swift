@@ -206,6 +206,12 @@ final class OnboardingViewModel: ObservableObject {
             // Identify user in subscription service
             subscriptionService.identifyUser(userId: user.id.uuidString)
             subscriptionService.setUserAttributes(name: name, partnerName: partnerName, weddingDate: weddingDate, weddingVenue: weddingVenue, weddingTown: weddingTown, referralSource: referralSource)
+
+            // Persist the chosen referral source to Supabase analytics (RevenueCat gets
+            // it via setUserAttributes above; this captures it in our own data too).
+            if !referralSource.isEmpty {
+                AnalyticsService.shared.logReferralSourceSelected(referralSource)
+            }
             print("🎯 [Onboarding] Identified user: \(user.id.uuidString) (\(name) & \(partnerName))")
         } catch {
             print("🎯 [Onboarding] Error during profile save: \(error)")

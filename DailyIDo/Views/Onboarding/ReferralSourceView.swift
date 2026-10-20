@@ -10,6 +10,7 @@ struct ReferralSourceView: View {
     private let sources = [
         ("Instagram", "camera.fill"),
         ("TikTok", "play.rectangle.fill"),
+        ("Facebook", "hand.thumbsup.fill"),
         ("Friend/Family", "person.2.fill"),
         ("Wedding Vendor", "storefront.fill"),
         ("Other", "ellipsis.circle.fill")

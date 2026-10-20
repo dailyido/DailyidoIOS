@@ -1,11 +1,12 @@
 import SwiftUI
 import PhotosUI
-import WebKit
 import UserNotifications
+import Paydirt
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @State private var showMeetThePlanners = false
+    @State private var showBookACall = false
     @State private var showFeedbackForm = false
     @State private var couplePhoto: UIImage? = OnboardingViewModel.loadCouplePhoto()
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -259,6 +260,16 @@ struct SettingsView: View {
                                     .padding(.leading, 44)
 
                                 SettingsActionRow(
+                                    icon: "calendar.badge.clock",
+                                    title: "Book a Call with a Planner"
+                                ) {
+                                    showBookACall = true
+                                }
+
+                                Divider()
+                                    .padding(.leading, 44)
+
+                                SettingsActionRow(
                                     icon: "star.fill",
                                     title: "Give Us a 5-Star Rating"
                                 ) {
@@ -339,7 +350,7 @@ struct SettingsView: View {
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText))
 
-                            Text("Version 1.2 (3)")
+                            Text("Version 1.3 (3)")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText).opacity(0.7))
                         }
@@ -387,6 +398,12 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showMeetThePlanners) {
                 MeetThePlannersView()
+            }
+            .sheet(isPresented: $showBookACall) {
+                if let url = URL(string: Constants.WebLinks.bookACall) {
+                    SafariView(url: url)
+                        .ignoresSafeArea()
+                }
             }
             .sheet(isPresented: $showFeedbackForm) {
                 FeedbackFormView()
@@ -475,52 +492,20 @@ struct SettingsActionRow: View {
     }
 }
 
-// MARK: - Feedback Form WebView
+// MARK: - Feedback Form
 
 struct FeedbackFormView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            FeedbackWebView(url: URL(string: "https://Superforms.co/form/051c1779-e910-40cf-81f6-53b480b4faaa")!)
-                .navigationTitle("Give Us Feedback")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
-                            dismiss()
-                        }
-                        .foregroundColor(Color(hex: Constants.Colors.accent))
-                    }
-                }
-        }
-    }
-}
-
-struct FeedbackWebView: UIViewRepresentable {
-    let url: URL
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-
-    func makeUIView(context: Context) -> WKWebView {
-        let configuration = WKWebViewConfiguration()
-        configuration.allowsInlineMediaPlayback = true
-        configuration.mediaTypesRequiringUserActionForPlayback = []
-
-        let webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.uiDelegate = context.coordinator
-        webView.load(URLRequest(url: url))
-        return webView
-    }
-
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
-
-    class Coordinator: NSObject, WKUIDelegate {
-        func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
-            decisionHandler(.grant)
-        }
+        Paydirt.shared.showForm(
+            formId: "22e5910c-78ee-4353-8236-71559b851ad7",
+            userId: AuthService.shared.currentUser?.id.uuidString ?? "unknown",
+            metadata: ["source": "settings"],
+            onCompletion: { _ in
+                dismiss()
+            }
+        )
     }
 }
 

@@ -6,6 +6,7 @@ import Combine
 @MainActor
 final class ChecklistViewModel: ObservableObject {
     @Published var checklistItems: [String: [ChecklistDisplayItem]] = [:]
+    @Published var customTodos: [String: [UserTodo]] = [:]
     @Published var completedTipIds: Set<UUID> = []
     @Published var expandedItemId: UUID?
     @Published var collapsedSections: Set<String> = []
@@ -17,7 +18,11 @@ final class ChecklistViewModel: ObservableObject {
     private let supabase = SupabaseService.shared
     private let authService = AuthService.shared
     private let favoritesService = FavoritesService.shared
+    private let subscriptionService = SubscriptionService.shared
     private var cancellables = Set<AnyCancellable>()
+
+    /// Whether the current user can add custom to-dos (Pro-gated feature).
+    var canAddCustomTodos: Bool { subscriptionService.isSubscribed }
 
     var user: User? { authService.currentUser }
 
@@ -57,7 +62,16 @@ final class ChecklistViewModel: ObservableObject {
 
     var sortedCategories: [String] {
         let categories = MonthCategory.allCases.map { $0.rawValue }
-        return categories.filter { checklistItems[$0] != nil && !checklistItems[$0]!.isEmpty }
+        return categories.filter { category in
+            let hasTips = !(checklistItems[category]?.isEmpty ?? true)
+            let hasTodos = !(customTodos[category]?.isEmpty ?? true)
+            return hasTips || hasTodos
+        }
+    }
+
+    /// Custom to-dos for a section, oldest first.
+    func todos(for category: String) -> [UserTodo] {
+        customTodos[category] ?? []
     }
 
     func loadData() async {
@@ -111,16 +125,31 @@ final class ChecklistViewModel: ObservableObject {
             }
 
             checklistItems = displayItems
-
-            // Auto-collapse sections except the current timeframe
-            setupInitialCollapsedState()
-
-            // Load favorites
-            await favoritesService.loadFavorites()
-            await loadFavoriteTips()
         } catch {
             print("Error loading checklist: \(error)")
         }
+
+        // Load the user's own custom to-dos independently — a todos failure must not
+        // blank out the checklist or block favorites loading below.
+        do {
+            let todos = try await supabase.fetchUserTodos(userId: userId)
+            var groupedTodos: [String: [UserTodo]] = [:]
+            for todo in todos.sorted(by: { $0.createdAt < $1.createdAt }) {
+                groupedTodos[todo.monthCategory, default: []].append(todo)
+            }
+            customTodos = groupedTodos
+        } catch {
+            print("Error loading custom to-dos: \(error)")
+        }
+
+        // Auto-collapse sections except the current timeframe
+        setupInitialCollapsedState()
+
+        // Load favorites LAST and independently of everything above. A failure in the
+        // checklist, tips, or to-dos fetches must never leave the Favorites tab empty.
+        // (Reported in a review: "can save favorites but can't access them again.")
+        await favoritesService.loadFavorites()
+        await loadFavoriteTips()
 
         isLoading = false
     }
@@ -242,9 +271,105 @@ final class ChecklistViewModel: ObservableObject {
     }
 
     func completionProgress(for category: String) -> (completed: Int, total: Int) {
-        guard let items = checklistItems[category] else { return (0, 0) }
-        let completed = items.filter { $0.isCompleted }.count
-        return (completed, items.count)
+        let items = checklistItems[category] ?? []
+        let todos = customTodos[category] ?? []
+        let completed = items.filter { $0.isCompleted }.count + todos.filter { $0.isCompleted }.count
+        return (completed, items.count + todos.count)
+    }
+
+    // MARK: - Custom To-Dos
+
+    /// Add a user-created to-do to a timeframe section. Optimistic, reverts on failure.
+    func addCustomTodo(title: String, note: String?, category: String) async {
+        guard let userId = user?.id else { return }
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else { return }
+
+        let todo = UserTodo(
+            id: UUID(),
+            userId: userId,
+            title: trimmedTitle,
+            note: normalizedNote(note),
+            monthCategory: category,
+            completedAt: nil,
+            createdAt: Date()
+        )
+
+        customTodos[category, default: []].append(todo)
+
+        do {
+            try await supabase.addUserTodo(todo)
+        } catch {
+            print("📋 [Checklist] ERROR adding custom to-do, reverting: \(error)")
+            customTodos[category]?.removeAll { $0.id == todo.id }
+        }
+    }
+
+    /// Edit an existing custom to-do's title/note.
+    func updateCustomTodo(_ todo: UserTodo, title: String, note: String?) async {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else { return }
+
+        var updated = todo
+        updated.title = trimmedTitle
+        updated.note = normalizedNote(note)
+
+        let previous = todo
+        replaceLocalTodo(updated)
+
+        do {
+            try await supabase.updateUserTodo(updated)
+        } catch {
+            print("📋 [Checklist] ERROR updating custom to-do, reverting: \(error)")
+            replaceLocalTodo(previous)
+        }
+    }
+
+    /// Toggle a custom to-do's completion state.
+    func toggleCustomTodo(_ todo: UserTodo) async {
+        var updated = todo
+        if todo.isCompleted {
+            updated.completedAt = nil
+        } else {
+            updated.completedAt = Date()
+            HapticManager.shared.checklistComplete()
+        }
+
+        replaceLocalTodo(updated)
+
+        do {
+            try await supabase.updateUserTodo(updated)
+        } catch {
+            print("📋 [Checklist] ERROR toggling custom to-do, reverting: \(error)")
+            replaceLocalTodo(todo)
+        }
+    }
+
+    /// Delete a custom to-do.
+    func deleteCustomTodo(_ todo: UserTodo) async {
+        let category = todo.monthCategory
+        let backup = customTodos[category]
+        customTodos[category]?.removeAll { $0.id == todo.id }
+
+        do {
+            try await supabase.deleteUserTodo(id: todo.id)
+        } catch {
+            print("📋 [Checklist] ERROR deleting custom to-do, reverting: \(error)")
+            customTodos[category] = backup
+        }
+    }
+
+    private func replaceLocalTodo(_ todo: UserTodo) {
+        let category = todo.monthCategory
+        if let index = customTodos[category]?.firstIndex(where: { $0.id == todo.id }) {
+            customTodos[category]?[index] = todo
+        }
+    }
+
+    private func normalizedNote(_ note: String?) -> String? {
+        guard let trimmed = note?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !trimmed.isEmpty else { return nil }
+        return trimmed
     }
 
     // MARK: - Favorites

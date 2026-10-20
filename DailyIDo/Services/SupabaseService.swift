@@ -104,6 +104,74 @@ final class SupabaseService {
             .execute()
     }
 
+    // MARK: - User To-Dos
+
+    func fetchUserTodos(userId: UUID) async throws -> [UserTodo] {
+        let response: [UserTodo] = try await client
+            .from("user_todos")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+            .value
+
+        return response
+    }
+
+    func addUserTodo(_ todo: UserTodo) async throws {
+        try await client
+            .from("user_todos")
+            .insert(todo)
+            .execute()
+    }
+
+    /// Payload that always encodes `note` and `completed_at` (even when nil) so
+    /// clearing a note or un-completing a to-do actually writes NULL. Synthesized
+    /// Codable uses `encodeIfPresent` for optionals and would silently omit them.
+    private struct TodoUpdatePayload: Encodable {
+        let title: String
+        let note: String?
+        let monthCategory: String
+        let completedAt: Date?
+
+        enum CodingKeys: String, CodingKey {
+            case title
+            case note
+            case monthCategory = "month_category"
+            case completedAt = "completed_at"
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(title, forKey: .title)
+            try container.encode(note, forKey: .note)
+            try container.encode(monthCategory, forKey: .monthCategory)
+            try container.encode(completedAt, forKey: .completedAt)
+        }
+    }
+
+    func updateUserTodo(_ todo: UserTodo) async throws {
+        let payload = TodoUpdatePayload(
+            title: todo.title,
+            note: todo.note,
+            monthCategory: todo.monthCategory,
+            completedAt: todo.completedAt
+        )
+
+        try await client
+            .from("user_todos")
+            .update(payload)
+            .eq("id", value: todo.id.uuidString)
+            .execute()
+    }
+
+    func deleteUserTodo(id: UUID) async throws {
+        try await client
+            .from("user_todos")
+            .delete()
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+
     // MARK: - Remote Popups
 
     func fetchActivePopups() async throws -> [RemotePopup] {

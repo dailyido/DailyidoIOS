@@ -11,6 +11,7 @@ struct ChecklistView: View {
     @State private var showSettings = false
     @State private var selectedFavoriteTip: Tip?
     @State private var selectedTab: ChecklistTab = .checklist
+    @State private var todoEditor: TodoEditorContext?
 
     init() {
         // Set navigation bar title color to dark blue and remove separator
@@ -92,9 +93,45 @@ struct ChecklistView: View {
                     }
                 }
             }
+            .sheet(item: $todoEditor) { context in
+                CustomTodoEditView(
+                    category: context.category,
+                    existing: context.todo,
+                    onSave: { title, note in
+                        Task {
+                            if let existing = context.todo {
+                                await viewModel.updateCustomTodo(existing, title: title, note: note)
+                            } else {
+                                await viewModel.addCustomTodo(title: title, note: note, category: context.category)
+                            }
+                        }
+                    },
+                    onDelete: context.todo == nil ? nil : {
+                        if let existing = context.todo {
+                            Task {
+                                await viewModel.deleteCustomTodo(existing)
+                            }
+                        }
+                    }
+                )
+            }
         }
         .task {
             await viewModel.loadData()
+        }
+    }
+
+    /// Add a custom to-do to a section. Pro-gated: free users see the paywall first.
+    private func handleAddTodo(category: String) {
+        if viewModel.canAddCustomTodos {
+            todoEditor = TodoEditorContext(category: category, todo: nil)
+        } else {
+            Task {
+                await SubscriptionService.shared.showProBadgePaywall()
+                if viewModel.canAddCustomTodos {
+                    todoEditor = TodoEditorContext(category: category, todo: nil)
+                }
+            }
         }
     }
 
@@ -113,6 +150,7 @@ struct ChecklistView: View {
                                 category: category,
                                 items: viewModel.checklistItems[category] ?? [],
                                 isLocked: isLocked,
+                                customTodos: viewModel.todos(for: category),
                                 expandedItemId: $viewModel.expandedItemId,
                                 onToggle: { item in
                                     Task {
@@ -125,6 +163,17 @@ struct ChecklistView: View {
                                 onAffiliateTap: { url in
                                     let tipId = viewModel.expandedItemId
                                     viewModel.openAffiliateLink(url, tipId: tipId)
+                                },
+                                onAddCustom: {
+                                    handleAddTodo(category: category)
+                                },
+                                onToggleCustom: { todo in
+                                    Task {
+                                        await viewModel.toggleCustomTodo(todo)
+                                    }
+                                },
+                                onEditCustom: { todo in
+                                    todoEditor = TodoEditorContext(category: todo.monthCategory, todo: todo)
                                 }
                             )
                         }
@@ -265,6 +314,136 @@ struct ChecklistSectionHeader: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 4)
         .background(Color(hex: Constants.Colors.background))
+    }
+}
+
+// MARK: - Custom To-Do Editor
+
+/// Identifies which section/to-do the editor sheet is working on.
+/// `todo == nil` means "add new"; otherwise it edits that to-do.
+struct TodoEditorContext: Identifiable {
+    let id = UUID()
+    let category: String
+    let todo: UserTodo?
+}
+
+struct CustomTodoEditView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let category: String
+    let existing: UserTodo?
+    let onSave: (String, String?) -> Void
+    var onDelete: (() -> Void)?
+
+    @State private var title: String
+    @State private var note: String
+
+    init(
+        category: String,
+        existing: UserTodo?,
+        onSave: @escaping (String, String?) -> Void,
+        onDelete: (() -> Void)? = nil
+    ) {
+        self.category = category
+        self.existing = existing
+        self.onSave = onSave
+        self.onDelete = onDelete
+        _title = State(initialValue: existing?.title ?? "")
+        _note = State(initialValue: existing?.note ?? "")
+    }
+
+    private var canSave: Bool {
+        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(hex: Constants.Colors.background)
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Which timeframe this to-do belongs to
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("TIMEFRAME")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                                .tracking(0.5)
+
+                            Text(category)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
+                        }
+
+                        LabeledInputField(
+                            label: "To-do",
+                            placeholder: "e.g. Book hair & makeup trial",
+                            text: $title
+                        )
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Note (optional)")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+
+                            TextEditor(text: $note)
+                                .font(.system(size: 17))
+                                .frame(minHeight: 100, alignment: .topLeading)
+                                .padding(8)
+                                .scrollContentBackground(.hidden)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1.5)
+                                )
+                        }
+
+                        if existing != nil, let onDelete = onDelete {
+                            Button(role: .destructive) {
+                                onDelete()
+                                dismiss()
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Image(systemName: "trash")
+                                    Text("Delete To-Do")
+                                        .font(.system(size: 16, weight: .medium))
+                                    Spacer()
+                                }
+                                .foregroundColor(.red)
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.red.opacity(0.4), lineWidth: 1.5)
+                                )
+                            }
+                            .padding(.top, 8)
+                        }
+                    }
+                    .padding(20)
+                }
+            }
+            .navigationTitle(existing == nil ? "Add To-Do" : "Edit To-Do")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        onSave(title, note)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .foregroundColor(canSave ? Color(hex: Constants.Colors.accent) : Color(hex: Constants.Colors.secondaryText).opacity(0.5))
+                    .disabled(!canSave)
+                }
+            }
+        }
     }
 }
 

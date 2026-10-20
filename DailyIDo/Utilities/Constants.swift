@@ -49,12 +49,20 @@ enum Constants {
         static let lastViewedDate = "lastViewedDate"  // Date when calendar position was saved
         static let newDaysSwipedCount = "newDaysSwipedCount"  // Count of new days swiped
         static let hasRequestedRating = "hasRequestedRating"  // Whether we've asked for rating
+        static let wasSubscribed = "wasSubscribed"  // Track previous subscription state for cancellation detection
+        static let hasShownCancellationForm = "hasShownCancellationForm"  // Whether cancellation form was shown for current churn event
     }
 
     // Social Links
     enum SocialLinks {
         static let instagramHandle = "thedailyido"
         static let instagramURL = "https://instagram.com/thedailyido"
+    }
+
+    // Web Links
+    enum WebLinks {
+        // Book-a-call landing page on thedailyido.com (links out to each planner's Calendly)
+        static let bookACall = "https://www.thedailyido.com/book-a-call"
     }
 
     // Notification Identifiers

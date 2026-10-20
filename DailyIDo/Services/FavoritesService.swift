@@ -33,9 +33,11 @@ final class FavoritesService: ObservableObject {
             favoritedDates = Dictionary(uniqueKeysWithValues: favorites.map { ($0.tipId, $0.favoritedAt) })
             print("💖 [Favorites] Loaded \(favoriteTipIds.count) favorites: \(favoriteTipIds)")
         } catch {
-            print("💖 [Favorites] Error loading: \(error)")
-            // Table might not exist yet - that's ok, just use empty set
-            favoriteTipIds = []
+            // Do NOT wipe already-loaded favorites on a transient error. Previously this
+            // set favoriteTipIds = [], so a flaky network call on launch made a user's
+            // saved favorites "disappear" until they force-quit and reopened the app.
+            // Keep whatever we already have and just log.
+            print("💖 [Favorites] Error loading (keeping existing \(favoriteTipIds.count) favorites): \(error)")
         }
     }
 

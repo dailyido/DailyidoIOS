@@ -2,139 +2,192 @@
 -- Daily I Do - Row Level Security (RLS) Policies
 -- Run this in Supabase SQL Editor (Database > SQL Editor)
 -- =====================================================
+--
+-- IMPORTANT: Run the verification query at the bottom
+-- after executing to confirm all tables have RLS enabled.
+--
+-- These policies are designed for a setup where:
+--   - No Supabase Auth is used (local UUID-based auth)
+--   - All client access uses the anon key
+--   - Content tables are read-only from the client
+--   - User tables are filtered by user_id in app code
+--
+-- Because there is no Supabase Auth, we cannot use
+-- auth.uid() in policies. Instead we:
+--   1. Block writes on content tables (SELECT only)
+--   2. Allow all operations on user tables (filtered in app)
+--   3. Allow INSERT only on analytics (append-only)
+--
+-- Safe to re-run: drops any existing policies first.
+-- =====================================================
+
 
 -- =====================================================
--- 1. USERS TABLE
--- Users can only access their own record
+-- CONTENT TABLES (read-only from the client)
+-- No INSERT/UPDATE/DELETE policies = writes are blocked
 -- =====================================================
+
+-- 1. WEDDING_TIPS
+ALTER TABLE wedding_tips ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read active tips" ON wedding_tips;
+DROP POLICY IF EXISTS "Anyone can read wedding tips" ON wedding_tips;
+
+CREATE POLICY "Anyone can read wedding tips"
+ON wedding_tips FOR SELECT
+USING (true);
+
+-- 2. FUN_TIPS
+ALTER TABLE fun_tips ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read active fun tips" ON fun_tips;
+DROP POLICY IF EXISTS "Anyone can read fun tips" ON fun_tips;
+
+CREATE POLICY "Anyone can read fun tips"
+ON fun_tips FOR SELECT
+USING (true);
+
+-- 3. REMOTE_POPUPS
+ALTER TABLE remote_popups ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read active popups" ON remote_popups;
+DROP POLICY IF EXISTS "Anyone can read popups" ON remote_popups;
+
+CREATE POLICY "Anyone can read popups"
+ON remote_popups FOR SELECT
+USING (true);
+
+-- 4. APP_CONFIG
+ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read active config" ON app_config;
+DROP POLICY IF EXISTS "Anyone can read app config" ON app_config;
+
+CREATE POLICY "Anyone can read app config"
+ON app_config FOR SELECT
+USING (true);
+
+-- 5. SCHEDULED_NOTIFICATIONS
+ALTER TABLE scheduled_notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can read active notifications" ON scheduled_notifications;
+DROP POLICY IF EXISTS "Anyone can read notifications" ON scheduled_notifications;
+
+CREATE POLICY "Anyone can read notifications"
+ON scheduled_notifications FOR SELECT
+USING (true);
+
+
+-- =====================================================
+-- USER TABLES (read + write from the client)
+-- Without Supabase Auth, we cannot restrict by auth.uid()
+-- so policies allow all operations. App filters by user_id.
+-- =====================================================
+
+-- 6. USERS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can read own data" ON users;
+DROP POLICY IF EXISTS "Users can insert own data" ON users;
+DROP POLICY IF EXISTS "Users can update own data" ON users;
+DROP POLICY IF EXISTS "Allow read users" ON users;
+DROP POLICY IF EXISTS "Allow insert users" ON users;
+DROP POLICY IF EXISTS "Allow update users" ON users;
 
--- Allow users to read their own data
-CREATE POLICY "Users can read own data"
+CREATE POLICY "Allow read users"
 ON users FOR SELECT
-USING (true);  -- Note: Without Supabase Auth, we allow reads and filter in app
+USING (true);
 
--- Allow users to insert their own data
-CREATE POLICY "Users can insert own data"
+CREATE POLICY "Allow insert users"
 ON users FOR INSERT
 WITH CHECK (true);
 
--- Allow users to update their own data
-CREATE POLICY "Users can update own data"
+CREATE POLICY "Allow update users"
 ON users FOR UPDATE
 USING (true);
 
--- =====================================================
--- 2. WEDDING_TIPS TABLE
--- Read-only for all app users, admin manages content
--- =====================================================
-ALTER TABLE wedding_tips ENABLE ROW LEVEL SECURITY;
-
--- Allow all authenticated users to read active tips
-CREATE POLICY "Anyone can read active tips"
-ON wedding_tips FOR SELECT
-USING (is_active = true);
-
--- =====================================================
--- 3. USER_CHECKLIST TABLE
--- Users can only access their own checklist items
--- =====================================================
+-- 7. USER_CHECKLIST
 ALTER TABLE user_checklist ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can read own checklist" ON user_checklist;
+DROP POLICY IF EXISTS "Users can insert checklist items" ON user_checklist;
+DROP POLICY IF EXISTS "Users can update own checklist" ON user_checklist;
+DROP POLICY IF EXISTS "Users can delete own checklist items" ON user_checklist;
+DROP POLICY IF EXISTS "Allow read user checklist" ON user_checklist;
+DROP POLICY IF EXISTS "Allow insert user checklist" ON user_checklist;
+DROP POLICY IF EXISTS "Allow delete user checklist" ON user_checklist;
 
--- Allow users to read their own checklist
-CREATE POLICY "Users can read own checklist"
+CREATE POLICY "Allow read user checklist"
 ON user_checklist FOR SELECT
 USING (true);
 
--- Allow users to add to their checklist
-CREATE POLICY "Users can insert checklist items"
+CREATE POLICY "Allow insert user checklist"
 ON user_checklist FOR INSERT
 WITH CHECK (true);
 
--- Allow users to update their checklist
-CREATE POLICY "Users can update own checklist"
-ON user_checklist FOR UPDATE
-USING (true);
-
--- Allow users to delete from their checklist
-CREATE POLICY "Users can delete own checklist items"
+CREATE POLICY "Allow delete user checklist"
 ON user_checklist FOR DELETE
 USING (true);
 
--- =====================================================
--- 4. REMOTE_POPUPS TABLE
--- Read-only for app users
--- =====================================================
-ALTER TABLE remote_popups ENABLE ROW LEVEL SECURITY;
+-- 8. USER_FAVORITES
+ALTER TABLE user_favorites ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow read user favorites" ON user_favorites;
+DROP POLICY IF EXISTS "Allow insert user favorites" ON user_favorites;
+DROP POLICY IF EXISTS "Allow delete user favorites" ON user_favorites;
 
--- Allow reading active popups
-CREATE POLICY "Anyone can read active popups"
-ON remote_popups FOR SELECT
-USING (is_active = true);
+CREATE POLICY "Allow read user favorites"
+ON user_favorites FOR SELECT
+USING (true);
 
--- =====================================================
--- 5. APP_CONFIG TABLE
--- Read-only for app users
--- =====================================================
-ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow insert user favorites"
+ON user_favorites FOR INSERT
+WITH CHECK (true);
 
--- Allow reading active config
-CREATE POLICY "Anyone can read active config"
-ON app_config FOR SELECT
-USING (is_active = true);
+CREATE POLICY "Allow delete user favorites"
+ON user_favorites FOR DELETE
+USING (true);
 
--- =====================================================
--- 6. SCHEDULED_NOTIFICATIONS TABLE
--- Read-only for app users
--- =====================================================
-ALTER TABLE scheduled_notifications ENABLE ROW LEVEL SECURITY;
-
--- Allow reading active notifications
-CREATE POLICY "Anyone can read active notifications"
-ON scheduled_notifications FOR SELECT
-USING (is_active = true);
-
--- =====================================================
--- 7. FUN_TIPS TABLE
--- Read-only for app users
--- =====================================================
-ALTER TABLE fun_tips ENABLE ROW LEVEL SECURITY;
-
--- Allow reading active fun tips
-CREATE POLICY "Anyone can read active fun tips"
-ON fun_tips FOR SELECT
-USING (is_active = true);
-
--- =====================================================
--- 8. USER_FUN_TIPS_SHOWN TABLE
--- Users can only access their own shown tips tracking
--- =====================================================
+-- 9. USER_FUN_TIPS_SHOWN
 ALTER TABLE user_fun_tips_shown ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can read own shown tips" ON user_fun_tips_shown;
+DROP POLICY IF EXISTS "Users can insert shown tips" ON user_fun_tips_shown;
+DROP POLICY IF EXISTS "Users can update own shown tips" ON user_fun_tips_shown;
+DROP POLICY IF EXISTS "Users can delete own shown tips" ON user_fun_tips_shown;
+DROP POLICY IF EXISTS "Allow read user fun tips shown" ON user_fun_tips_shown;
+DROP POLICY IF EXISTS "Allow insert user fun tips shown" ON user_fun_tips_shown;
+DROP POLICY IF EXISTS "Allow update user fun tips shown" ON user_fun_tips_shown;
+DROP POLICY IF EXISTS "Allow delete user fun tips shown" ON user_fun_tips_shown;
 
--- Allow users to read their own shown tips
-CREATE POLICY "Users can read own shown tips"
+CREATE POLICY "Allow read user fun tips shown"
 ON user_fun_tips_shown FOR SELECT
 USING (true);
 
--- Allow users to record shown tips
-CREATE POLICY "Users can insert shown tips"
+CREATE POLICY "Allow insert user fun tips shown"
 ON user_fun_tips_shown FOR INSERT
 WITH CHECK (true);
 
--- Allow users to update their shown tips
-CREATE POLICY "Users can update own shown tips"
+CREATE POLICY "Allow update user fun tips shown"
 ON user_fun_tips_shown FOR UPDATE
 USING (true);
 
--- Allow users to delete their shown tips (for reset)
-CREATE POLICY "Users can delete own shown tips"
+CREATE POLICY "Allow delete user fun tips shown"
 ON user_fun_tips_shown FOR DELETE
 USING (true);
 
+
+-- =====================================================
+-- ANALYTICS TABLE (append-only from the client)
+-- Only INSERT allowed - no read/update/delete via anon key
+-- =====================================================
+
+-- 10. ANALYTICS_EVENTS
+ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow insert analytics events" ON analytics_events;
+
+CREATE POLICY "Allow insert analytics events"
+ON analytics_events FOR INSERT
+WITH CHECK (true);
+
+
 -- =====================================================
 -- VERIFICATION QUERY
--- Run this after to verify RLS is enabled
+-- Run this after to verify RLS is enabled on all tables.
+-- Every table should show rowsecurity = true.
 -- =====================================================
 -- SELECT tablename, rowsecurity
 -- FROM pg_tables
--- WHERE schemaname = 'public';
+-- WHERE schemaname = 'public'
+-- ORDER BY tablename;

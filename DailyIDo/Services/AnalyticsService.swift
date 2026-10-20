@@ -10,6 +10,7 @@ enum AnalyticsEvent: String {
     case onboardingScreenCompleted = "onboarding_screen_completed"
     case onboardingCompleted = "onboarding_completed"
     case onboardingAbandoned = "onboarding_abandoned"
+    case referralSourceSelected = "referral_source_selected"
 
     // App Lifecycle
     case appOpened = "app_opened"
@@ -206,6 +207,11 @@ final class AnalyticsService {
 
     func logOnboardingAbandoned(atScreen screen: OnboardingScreen) {
         log(.onboardingAbandoned, data: ["last_screen": screen.rawValue])
+    }
+
+    /// Records which "How did you hear about us?" option the user chose (e.g. "Facebook").
+    func logReferralSourceSelected(_ source: String) {
+        log(.referralSourceSelected, data: ["source": source])
     }
 
     // MARK: - Engagement Tracking

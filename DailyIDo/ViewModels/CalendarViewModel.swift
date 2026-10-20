@@ -230,6 +230,15 @@ final class CalendarViewModel: ObservableObject {
         print("DEBUG CalendarVM: user.weddingDate = \(String(describing: user?.weddingDate))")
         print("DEBUG CalendarVM: actualDaysUntilWedding = \(actualDaysUntilWedding)")
 
+        // Compute the initial position BEFORE any network calls. It depends only on
+        // the user record (already loaded) + UserDefaults, never on the network. If a
+        // tip/streak fetch below throws (e.g. a flaky connection on cold launch), the
+        // countdown must still be correct — otherwise displayedDaysOut stays at its
+        // default 0 and the card shows "0 DAYS UNTIL YOUR WEDDING" until the user
+        // force-quits and reopens. (Reported in a review: opens to "0 days" every day.)
+        calculateInitialPosition()
+        print("DEBUG CalendarVM: after calculateInitialPosition, displayedDaysOut = \(displayedDaysOut)")
+
         do {
             try await tipService.loadTips()
             print("DEBUG CalendarVM: tips loaded, count = \(tipService.tips.count)")
@@ -240,11 +249,11 @@ final class CalendarViewModel: ObservableObject {
                 await tipService.loadUserFunTipHistory(userId: user.id)
             }
 
-            calculateInitialPosition()
-            print("DEBUG CalendarVM: after calculateInitialPosition, displayedDaysOut = \(displayedDaysOut)")
             updateCurrentTip()
             print("DEBUG CalendarVM: after updateCurrentTip, currentTip = \(String(describing: currentTip?.title))")
         } catch {
+            // Position is already set above, so the countdown stays correct even here.
+            // The tip may be missing (shows "Loading tip…") but the date is right.
             print("Error loading calendar data: \(error)")
         }
 
