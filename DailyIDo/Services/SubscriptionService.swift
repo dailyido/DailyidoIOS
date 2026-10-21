@@ -36,10 +36,22 @@ final class SubscriptionService: NSObject, ObservableObject, PurchasesDelegate {
         print("🔧 [SubscriptionService] RevenueCat API Key: \(Constants.revenueCatAPIKey.prefix(10))...")
         print("🔧 [SubscriptionService] Superwall API Key: \(Constants.superwallAPIKey.prefix(10))...")
 
-        // Configure RevenueCat first
+        // Configure RevenueCat first.
+        //
+        // Force StoreKit 1. Purchases are made through the Superwall PurchaseController,
+        // which hands us a StoreKit 1 SKProduct that we bridge via
+        // StoreProduct(sk1Product:) in RCPurchaseController. RevenueCat v5 defaults to
+        // StoreKit 2, which has no SK1 payment wrapper and rejects SK1-bridged purchases
+        // with configurationError (RevenueCat.ErrorCode 23) — every subscribe attempt
+        // failed with "An error occurred" on the paywall. v4 defaulted to StoreKit 1,
+        // so this restores the behavior the app's purchase flow relies on.
         Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: Constants.revenueCatAPIKey)
-        print("🔧 [SubscriptionService] RevenueCat configured")
+        Purchases.configure(
+            with: Configuration.Builder(withAPIKey: Constants.revenueCatAPIKey)
+                .with(storeKitVersion: .storeKit1)
+                .build()
+        )
+        print("🔧 [SubscriptionService] RevenueCat configured (StoreKit 1)")
 
         // Create purchase controller for Superwall + RevenueCat integration
         let controller = RCPurchaseController()
