@@ -58,7 +58,7 @@ struct TutorialView: View {
             TutorialStep(
                 icon: "phone.fill",
                 title: "Talk to a Real Planner",
-                description: "Have questions or need a little guidance? Book a one-on-one call with Jamie or Heather! We're here to help you every step of the way. Just head to Settings and tap \"Book a Call with a Planner.\""
+                description: "Looking for guidance? Head to Settings and tap \"Book a Call with a Planner\" to schedule a one-on-one call with seasoned planners Jamie or Heather!"
             ),
             TutorialStep(
                 icon: "calendar.badge.clock",
