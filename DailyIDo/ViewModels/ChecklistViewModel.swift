@@ -54,6 +54,9 @@ final class ChecklistViewModel: ObservableObject {
 
     // Check if a category should be locked (too far in advance)
     func isCategoryLocked(_ categoryString: String) -> Bool {
+        // Subscribers (trial or paid) get the entire checklist unlocked.
+        if subscriptionService.isSubscribed { return false }
+
         guard let category = MonthCategory(rawValue: categoryString) else { return false }
         // Lock categories that come AFTER the user's current timeframe
         // (higher displayOrder = closer to wedding = should be locked if user is further out)
@@ -306,22 +309,36 @@ final class ChecklistViewModel: ObservableObject {
     }
 
     /// Edit an existing custom to-do's title/note.
-    func updateCustomTodo(_ todo: UserTodo, title: String, note: String?) async {
+    func updateCustomTodo(_ todo: UserTodo, title: String, note: String?, category: String) async {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty else { return }
 
         var updated = todo
         updated.title = trimmedTitle
         updated.note = normalizedNote(note)
+        updated.monthCategory = category
 
         let previous = todo
-        replaceLocalTodo(updated)
+        let categoryChanged = previous.monthCategory != category
+
+        // Optimistic local update (move between timeframe buckets if the category changed)
+        if categoryChanged {
+            customTodos[previous.monthCategory]?.removeAll { $0.id == todo.id }
+            customTodos[category, default: []].append(updated)
+        } else {
+            replaceLocalTodo(updated)
+        }
 
         do {
             try await supabase.updateUserTodo(updated)
         } catch {
             print("📋 [Checklist] ERROR updating custom to-do, reverting: \(error)")
-            replaceLocalTodo(previous)
+            if categoryChanged {
+                customTodos[category]?.removeAll { $0.id == todo.id }
+                customTodos[previous.monthCategory, default: []].append(previous)
+            } else {
+                replaceLocalTodo(previous)
+            }
         }
     }
 

@@ -299,7 +299,7 @@ struct MainTabView: View {
             if let weddingDate = weddingDate {
                 // Check for holiday popup (date-based)
                 if let holidayPopup = popups.first(where: {
-                    $0.popupType == PopupType.holiday.rawValue &&
+                    $0.popupType.lowercased() == PopupType.holiday.rawValue &&
                     $0.triggerDate != nil &&
                     Calendar.current.isDate($0.triggerDate!, inSameDayAs: today)
                 }) {
@@ -319,7 +319,7 @@ struct MainTabView: View {
                 // Check for days_out popup (milestone like "30 days!")
                 let daysOut = Date().daysUntil(weddingDate)
                 if let daysOutPopup = popups.first(where: {
-                    $0.popupType == PopupType.daysOut.rawValue &&
+                    $0.popupType.lowercased() == PopupType.daysOut.rawValue &&
                     $0.triggerDaysOut == daysOut
                 }) {
                     guard !hasShownPopupToday(daysOutPopup.id) else {
@@ -343,7 +343,7 @@ struct MainTabView: View {
             let effectiveDayCount = alreadyCountedToday ? user.totalDaysUsed : user.totalDaysUsed + 1
 
             if let dayNumberPopup = popups.first(where: {
-                $0.popupType == PopupType.dayNumber.rawValue &&
+                $0.popupType.lowercased() == PopupType.dayNumber.rawValue &&
                 $0.triggerDayNumber == effectiveDayCount
             }) {
                 guard !hasShownPopupToday(dayNumberPopup.id) else {

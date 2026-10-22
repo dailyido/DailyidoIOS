@@ -8,6 +8,7 @@ enum ChecklistTab: String, CaseIterable {
 struct ChecklistView: View {
     @StateObject private var viewModel = ChecklistViewModel()
     @StateObject private var favoritesService = FavoritesService.shared
+    @StateObject private var subscriptionService = SubscriptionService.shared
     @State private var showSettings = false
     @State private var selectedFavoriteTip: Tip?
     @State private var selectedTab: ChecklistTab = .checklist
@@ -97,12 +98,12 @@ struct ChecklistView: View {
                 CustomTodoEditView(
                     category: context.category,
                     existing: context.todo,
-                    onSave: { title, note in
+                    onSave: { title, note, category in
                         Task {
                             if let existing = context.todo {
-                                await viewModel.updateCustomTodo(existing, title: title, note: note)
+                                await viewModel.updateCustomTodo(existing, title: title, note: note, category: category)
                             } else {
-                                await viewModel.addCustomTodo(title: title, note: note, category: context.category)
+                                await viewModel.addCustomTodo(title: title, note: note, category: category)
                             }
                         }
                     },
@@ -332,16 +333,17 @@ struct CustomTodoEditView: View {
 
     let category: String
     let existing: UserTodo?
-    let onSave: (String, String?) -> Void
+    let onSave: (String, String?, String) -> Void
     var onDelete: (() -> Void)?
 
     @State private var title: String
     @State private var note: String
+    @State private var selectedCategory: String
 
     init(
         category: String,
         existing: UserTodo?,
-        onSave: @escaping (String, String?) -> Void,
+        onSave: @escaping (String, String?, String) -> Void,
         onDelete: (() -> Void)? = nil
     ) {
         self.category = category
@@ -350,6 +352,7 @@ struct CustomTodoEditView: View {
         self.onDelete = onDelete
         _title = State(initialValue: existing?.title ?? "")
         _note = State(initialValue: existing?.note ?? "")
+        _selectedCategory = State(initialValue: existing?.monthCategory ?? category)
     }
 
     private var canSave: Bool {
@@ -364,16 +367,35 @@ struct CustomTodoEditView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        // Which timeframe this to-do belongs to
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("TIMEFRAME")
-                                .font(.system(size: 12, weight: .semibold))
+                        // Which timeframe this to-do belongs to (choose from the dropdown)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Timeframe")
+                                .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Color(hex: Constants.Colors.secondaryText))
-                                .tracking(0.5)
 
-                            Text(category)
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
+                            Menu {
+                                ForEach(MonthCategory.allCases, id: \.self) { cat in
+                                    Button(cat.rawValue) {
+                                        selectedCategory = cat.rawValue
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedCategory)
+                                        .font(.system(size: 17))
+                                        .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
+                                    Spacer()
+                                    Image(systemName: "chevron.up.chevron.down")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(Color(hex: Constants.Colors.secondaryText))
+                                }
+                                .padding(.horizontal, 16)
+                                .frame(height: 54)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1.5)
+                                )
+                            }
                         }
 
                         LabeledInputField(
@@ -435,7 +457,7 @@ struct CustomTodoEditView: View {
 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
-                        onSave(title, note)
+                        onSave(title, note, selectedCategory)
                         dismiss()
                     }
                     .fontWeight(.semibold)
