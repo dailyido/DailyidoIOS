@@ -97,14 +97,18 @@ struct MainTabView: View {
                     case 0:
                         CalendarView(isTutorialShowing: $showTutorial)
                     case 1:
-                        ChecklistView()
+                        ChecklistView(
+                            onRestartTutorial: {
+                                selectedTab = 0
+                                showTutorial = true
+                            },
+                            onSettingsClosed: {
+                                // The couple photo can change in Settings
+                                couplePhoto = OnboardingViewModel.loadCouplePhoto()
+                            }
+                        )
                     case 2:
-                        SettingsView(onDone: {
-                            selectedTab = 0
-                        }, onRestartTutorial: {
-                            selectedTab = 0
-                            showTutorial = true
-                        })
+                        ToolsHubView()
                     default:
                         CalendarView(isTutorialShowing: $showTutorial)
                     }
@@ -116,11 +120,6 @@ struct MainTabView: View {
             }
             .ignoresSafeArea(.keyboard)
             .onChange(of: selectedTab) { newTab in
-                // Refresh photo when leaving settings tab
-                if newTab != 2 {
-                    couplePhoto = OnboardingViewModel.loadCouplePhoto()
-                }
-
                 // Track tab opens
                 switch newTab {
                 case 0:
@@ -128,7 +127,7 @@ struct MainTabView: View {
                 case 1:
                     AnalyticsService.shared.logTabOpened("checklist")
                 case 2:
-                    AnalyticsService.shared.logSettingsOpened()
+                    AnalyticsService.shared.logTabOpened("tools")
                 default:
                     break
                 }

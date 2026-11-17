@@ -14,7 +14,14 @@ struct ChecklistView: View {
     @State private var selectedTab: ChecklistTab = .checklist
     @State private var todoEditor: TodoEditorContext?
 
-    init() {
+    /// Settings lives behind the gear on this page (the center tab is Tools).
+    var onRestartTutorial: (() -> Void)?
+    var onSettingsClosed: (() -> Void)?
+
+    init(onRestartTutorial: (() -> Void)? = nil, onSettingsClosed: (() -> Void)? = nil) {
+        self.onRestartTutorial = onRestartTutorial
+        self.onSettingsClosed = onSettingsClosed
+
         // Set navigation bar title color to dark blue and remove separator
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
@@ -81,10 +88,30 @@ struct ChecklistView: View {
                 ToolbarItem(placement: .principal) {
                     EmptyView()
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        HapticManager.shared.buttonTap()
+                        AnalyticsService.shared.logSettingsOpened()
+                        showSettings = true
+                    }) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(Color(hex: Constants.Colors.buttonPrimary))
+                    }
+                    .accessibilityLabel("Settings")
+                }
             }
-            .sheet(isPresented: $showSettings) {
+            .sheet(isPresented: $showSettings, onDismiss: {
+                onSettingsClosed?()
+            }) {
                 SettingsView(onDone: {
                     showSettings = false
+                }, onRestartTutorial: {
+                    showSettings = false
+                    // Let the sheet finish closing before switching tabs.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        onRestartTutorial?()
+                    }
                 })
             }
             .sheet(item: $selectedFavoriteTip) { tip in

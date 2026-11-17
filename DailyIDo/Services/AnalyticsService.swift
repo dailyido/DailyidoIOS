@@ -47,6 +47,16 @@ enum AnalyticsEvent: String {
     case couplePhotoUpdated = "couple_photo_updated"
     case meetThePlannersOpened = "meet_the_planners_opened"
 
+    // Tools
+    case toolsTabOpened = "tools_tab_opened"
+    case toolOpened = "tool_opened"
+    case timelineQuestionnaireStarted = "timeline_questionnaire_started"
+    case timelineQuestionnaireCompleted = "timeline_questionnaire_completed"
+    case timelineGenerated = "timeline_generated"
+    case timelineEdited = "timeline_edited"
+    case timelineFirstLookChosen = "timeline_first_look_chosen"
+    case timelineWarningsShown = "timeline_warnings_shown"
+
     // Retention
     case day1Return = "day_1_return"
     case day7Return = "day_7_return"
@@ -246,6 +256,8 @@ final class AnalyticsService {
             log(.calendarTabOpened)
         case "checklist":
             log(.checklistTabOpened)
+        case "tools":
+            log(.toolsTabOpened)
         default:
             break
         }
@@ -324,6 +336,36 @@ final class AnalyticsService {
 
     func logMeetThePlannersOpened() {
         log(.meetThePlannersOpened)
+    }
+
+    // MARK: - Tools Tracking
+
+    func logToolOpened(_ tool: String) {
+        log(.toolOpened, data: ["tool": tool])
+    }
+
+    func logTimelineQuestionnaireStarted() {
+        log(.timelineQuestionnaireStarted)
+    }
+
+    func logTimelineQuestionnaireCompleted(firstLook: String?) {
+        log(.timelineQuestionnaireCompleted, data: ["first_look": firstLook ?? "unknown"])
+    }
+
+    func logTimelineGenerated(branches: [String]) {
+        log(.timelineGenerated, data: ["branches": branches])
+    }
+
+    func logTimelineEdited(action: String, itemId: String) {
+        log(.timelineEdited, data: ["action": action, "item_id": itemId])
+    }
+
+    func logTimelineFirstLookChosen(_ branch: String) {
+        log(.timelineFirstLookChosen, data: ["branch": branch])
+    }
+
+    func logTimelineWarningsShown(_ kinds: [String]) {
+        log(.timelineWarningsShown, data: ["warnings": kinds])
     }
 
     // MARK: - Retention Tracking
