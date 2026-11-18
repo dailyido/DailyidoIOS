@@ -63,6 +63,8 @@ enum Constants {
     enum WebLinks {
         // Book-a-call landing page on thedailyido.com (links out to each planner's Calendly)
         static let bookACall = "https://www.thedailyido.com/book-a-call"
+        // Budget tracker tool on thedailyido.com (opened from the Tools tab)
+        static let budgetTracker = "https://www.thedailyido.com/budgettracker"
     }
 
     // Notification Identifiers

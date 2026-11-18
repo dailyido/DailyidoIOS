@@ -12,6 +12,7 @@
 		0B55C31C2F156CEF002450AC /* Configuration.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 0B55C31B2F156CEF002450AC /* Configuration.storekit */; };
 		0B55C31E2F156E65002450AC /* RCPurchaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B55C31D2F156E65002450AC /* RCPurchaseController.swift */; };
 		0B626CE92F509D2B0090045F /* AppUpdateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B626CE82F509D2B0090045F /* AppUpdateService.swift */; };
+		0BD0670C30CAFE312DED190F /* ToolsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4D68005B971566FA05B9A80 /* ToolsHubView.swift */; };
 		0BE0DB7C2F08724900E9A51F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = G100000001 /* Supabase */; };
 		0BE0DB7D2F08724900E9A51F /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = G100000002 /* RevenueCat */; };
 		0BE0DB7E2F08724900E9A51F /* SuperwallKit in Frameworks */ = {isa = PBXBuildFile; productRef = G100000003 /* SuperwallKit */; };
@@ -19,8 +20,11 @@
 		0BE0DB812F0C179400E9A51F /* CormorantGaramond-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0BE0DB802F0C179400E9A51F /* CormorantGaramond-Regular.ttf */; };
 		0BE0DB832F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0BE0DB822F0C1E9D00E9A51F /* CormorantGaramond-Bold.ttf */; };
 		3CB56BB60F755C28E604E14E /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */; };
+		45416CF20B9C9D49C08E09D8 /* TimelineQuestionnaireView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE504A2FF39A58EEA1FA594F /* TimelineQuestionnaireView.swift */; };
 		49355FA825BDAF41A85C1C0B /* CachedAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */; };
+		4A8C816591EB40F240955790 /* TimelineDayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD1951E5313243C4A4E32D8 /* TimelineDayView.swift */; };
 		5F3DE165828436611C8A6F28 /* InstagramSharingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */; };
+		69BADDD506B90C2357A693E8 /* TimelineFormComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3806468DC0D8D977801846 /* TimelineFormComponents.swift */; };
 		850CC226F730EDB7EFE66C55 /* FavoritesGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F65EDD98586917BCF7ED64 /* FavoritesGridView.swift */; };
 		931A0559221BB48116468396 /* FavoriteItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB5F9AE4FCE624F0AFE9986 /* FavoriteItem.swift */; };
 		A100000001 /* DailyIDoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000001 /* DailyIDoApp.swift */; };
@@ -74,12 +78,16 @@
 		A100000061 /* ReferralSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000061 /* ReferralSourceView.swift */; };
 		A100000062 /* LongEngagementTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000062 /* LongEngagementTutorialView.swift */; };
 		A16166D7B336F09BA7EB562A /* FavoriteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44F492A17FACF552B8C0745 /* FavoriteDetailView.swift */; };
+		CB1C65B242EC80522B295ECA /* TimelineEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF4E167819290BB5DE4BE850 /* TimelineEngine.swift */; };
 		CC304584A069FE27C4B37244 /* IntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027044510D463EB67B88B213 /* IntroView.swift */; };
 		D193CED3122D7DF9708806FB /* HeartFavoriteAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4CAC269BF1C2E3D3ECB36F /* HeartFavoriteAnimation.swift */; };
+		DB31A17A2DD05F47668733E9 /* TimelineBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D7EF26D7B075E2B83861B5 /* TimelineBuilderView.swift */; };
 		E13FCC8D4C401ED648FF9D55 /* CouplePhotoUploadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */; };
+		E1CDE7E7FEF0A25C89563288 /* WeddingTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E0BC9A2061CA36816BF6DC6 /* WeddingTimeline.swift */; };
 		E3E8E858039347BDFC0F3B4B /* MeetThePlannersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */; };
 		E4FF6B303C8130B0B3C84A87 /* FunTip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 841D4F19F6F50370F16F863E /* FunTip.swift */; };
 		E88A57A002E8D4186534F7F6 /* TutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3086DA4D425A2489A41FE768 /* TutorialView.swift */; };
+		EA156649D4D545D3CFF5445C /* TimelineStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A01AE3233CCBFEFA50969EFE /* TimelineStore.swift */; };
 		F33EBC67C27CB77AE5458F59 /* FavoritesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C902ADA2310F43AE2B7E1E5 /* FavoritesService.swift */; };
 /* End PBXBuildFile section */
 
@@ -97,11 +105,15 @@
 		27F65EDD98586917BCF7ED64 /* FavoritesGridView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoritesGridView.swift; sourceTree = "<group>"; };
 		3086DA4D425A2489A41FE768 /* TutorialView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
 		4F853AD733C6904D4BC205D8 /* CachedAsyncImage.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
+		58D7EF26D7B075E2B83861B5 /* TimelineBuilderView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineBuilderView.swift; sourceTree = "<group>"; };
 		5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
 		5CB3C2771D1CF53FC8F1EC42 /* MeetThePlannersView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MeetThePlannersView.swift; path = DailyIDo/Views/Settings/MeetThePlannersView.swift; sourceTree = "<group>"; };
+		5CD1951E5313243C4A4E32D8 /* TimelineDayView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineDayView.swift; sourceTree = "<group>"; };
 		841D4F19F6F50370F16F863E /* FunTip.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FunTip.swift; sourceTree = "<group>"; };
 		8C902ADA2310F43AE2B7E1E5 /* FavoritesService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoritesService.swift; sourceTree = "<group>"; };
+		9E0BC9A2061CA36816BF6DC6 /* WeddingTimeline.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeddingTimeline.swift; sourceTree = "<group>"; };
 		9EB5F9AE4FCE624F0AFE9986 /* FavoriteItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoriteItem.swift; sourceTree = "<group>"; };
+		A01AE3233CCBFEFA50969EFE /* TimelineStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineStore.swift; sourceTree = "<group>"; };
 		B100000000 /* DailyIDo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyIDo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B100000001 /* DailyIDoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyIDoApp.swift; sourceTree = "<group>"; };
 		B100000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -154,8 +166,12 @@
 		B100000060 /* RandomIllustrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomIllustrationService.swift; sourceTree = "<group>"; };
 		B100000061 /* ReferralSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralSourceView.swift; sourceTree = "<group>"; };
 		B100000062 /* LongEngagementTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongEngagementTutorialView.swift; sourceTree = "<group>"; };
+		BB3806468DC0D8D977801846 /* TimelineFormComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineFormComponents.swift; sourceTree = "<group>"; };
+		BE504A2FF39A58EEA1FA594F /* TimelineQuestionnaireView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineQuestionnaireView.swift; sourceTree = "<group>"; };
 		C44F492A17FACF552B8C0745 /* FavoriteDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FavoriteDetailView.swift; sourceTree = "<group>"; };
+		CF4E167819290BB5DE4BE850 /* TimelineEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimelineEngine.swift; sourceTree = "<group>"; };
 		DB78B11D747379C85191A0ED /* CouplePhotoUploadView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CouplePhotoUploadView.swift; path = DailyIDo/Views/Onboarding/CouplePhotoUploadView.swift; sourceTree = "<group>"; };
+		F4D68005B971566FA05B9A80 /* ToolsHubView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ToolsHubView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +189,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6F0684661EB04E71D4163B17 /* Timeline */ = {
+			isa = PBXGroup;
+			children = (
+				58D7EF26D7B075E2B83861B5 /* TimelineBuilderView.swift */,
+				5CD1951E5313243C4A4E32D8 /* TimelineDayView.swift */,
+				BB3806468DC0D8D977801846 /* TimelineFormComponents.swift */,
+				BE504A2FF39A58EEA1FA594F /* TimelineQuestionnaireView.swift */,
+			);
+			name = Timeline;
+			path = Timeline;
+			sourceTree = "<group>";
+		};
+		A5AA6B1F6AF3F422748FE2B7 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				F4D68005B971566FA05B9A80 /* ToolsHubView.swift */,
+			);
+			name = Tools;
+			path = Tools;
+			sourceTree = "<group>";
+		};
 		D0AB24A5709B729758EFD483 /* Tutorial */ = {
 			isa = PBXGroup;
 			children = (
@@ -237,6 +274,7 @@
 				B100000007 /* AppConfig.swift */,
 				841D4F19F6F50370F16F863E /* FunTip.swift */,
 				9EB5F9AE4FCE624F0AFE9986 /* FavoriteItem.swift */,
+				9E0BC9A2061CA36816BF6DC6 /* WeddingTimeline.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -258,6 +296,8 @@
 				15EBA746B08E56C5AD3F4F01 /* InstagramSharingService.swift */,
 				5A5FA260592CFAC46C52E3B3 /* RemindersService.swift */,
 				8C902ADA2310F43AE2B7E1E5 /* FavoritesService.swift */,
+				CF4E167819290BB5DE4BE850 /* TimelineEngine.swift */,
+				A01AE3233CCBFEFA50969EFE /* TimelineStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -282,6 +322,8 @@
 				D100000014 /* Checklist */,
 				D100000015 /* Settings */,
 				D0AB24A5709B729758EFD483 /* Tutorial */,
+				A5AA6B1F6AF3F422748FE2B7 /* Tools */,
+				6F0684661EB04E71D4163B17 /* Timeline */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -523,6 +565,14 @@
 				D193CED3122D7DF9708806FB /* HeartFavoriteAnimation.swift in Sources */,
 				850CC226F730EDB7EFE66C55 /* FavoritesGridView.swift in Sources */,
 				A16166D7B336F09BA7EB562A /* FavoriteDetailView.swift in Sources */,
+				E1CDE7E7FEF0A25C89563288 /* WeddingTimeline.swift in Sources */,
+				CB1C65B242EC80522B295ECA /* TimelineEngine.swift in Sources */,
+				EA156649D4D545D3CFF5445C /* TimelineStore.swift in Sources */,
+				0BD0670C30CAFE312DED190F /* ToolsHubView.swift in Sources */,
+				DB31A17A2DD05F47668733E9 /* TimelineBuilderView.swift in Sources */,
+				4A8C816591EB40F240955790 /* TimelineDayView.swift in Sources */,
+				69BADDD506B90C2357A693E8 /* TimelineFormComponents.swift in Sources */,
+				45416CF20B9C9D49C08E09D8 /* TimelineQuestionnaireView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
